@@ -1,13 +1,13 @@
 package ca.bcit.cst.rongyi.gui;
 
-import ca.bcit.cst.rongyi.util.Downloader;
+import ca.bcit.cst.rongyi.util.ElementNotFoundException;
 import ca.bcit.cst.rongyi.util.Song;
 import ca.bcit.cst.rongyi.util.Spider;
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
@@ -62,8 +62,11 @@ public class Main extends Application {
                             System.out.printf("Unable to download song, %s\n", song);
                         }
                     }
+                    System.out.printf("playlist id: %s, Download Complete", finalId);
                 } catch (IOException e) {
                     System.out.printf("Unable to get playlist, id: %s\n", id);
+                } catch (ElementNotFoundException e) {
+                    e.printStackTrace();
                 }
             }).start();
         });
@@ -81,10 +84,10 @@ public class Main extends Application {
                     Spider.getSongByID(finalId).download(dir);
                 } catch (IOException e) {
                     System.out.printf("Unable to download song, id: %s\n", id);
+                } catch (ElementNotFoundException e) {
+                    e.printStackTrace();
                 }
             }).start();
-
-
         });
     }
 

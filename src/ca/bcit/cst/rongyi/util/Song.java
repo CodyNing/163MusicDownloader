@@ -20,11 +20,25 @@ public class Song {
         this.title = title;
         this.artist = artist;
         this.album = album;
+        makeTitleValid();
     }
 
     public Song(String id, String title) {
         this.id = id;
         this.title = title;
+        makeTitleValid();
+    }
+
+    private void makeTitleValid() {
+        this.title
+                .replace(':', '：')
+                .replace('<', '＜')
+                .replace('>', '＞')
+                .replace('\"', '＂')
+                .replace('/', '／')
+                .replace('\\', '｜')
+                .replace('?', '？')
+                .replace('*', '＊');
     }
 
     public void download(File dir) throws IOException {
@@ -47,7 +61,11 @@ public class Song {
     public void setArtistAndAlbum() {
         if (artist != null && album != null)
             return;
-        Spider.setArtistAndAlbum(this);
+        try {
+            Spider.setArtistAndAlbum(this);
+        } catch (ElementNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     public String getId() {

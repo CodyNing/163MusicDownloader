@@ -44,6 +44,11 @@ public class Downloader {
         rbc.close();
         fos.close();
         System.out.printf("%s Download Complete\n", ofp.getName());
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         return ofp;
     }

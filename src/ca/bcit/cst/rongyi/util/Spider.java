@@ -1,12 +1,10 @@
 package ca.bcit.cst.rongyi.util;
 
-import com.mpatric.mp3agic.*;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -61,7 +59,7 @@ public class Spider {
         return url;
     }
 
-    public static List<Song> getSongs(List<String> songIDList) throws IOException {
+    public static List<Song> getSongs(List<String> songIDList) throws IOException, ElementNotFoundException {
         List<Song> songList = new ArrayList<>();
         for (String songID : songIDList) {
             songList.add(getSongByID(songID));
@@ -70,56 +68,58 @@ public class Spider {
         return songList;
     }
 
-    public static List<Song> getCompleteSongByPlaylist(String playlistID) throws IOException {
+    public static List<Song> getCompleteSongByPlaylist(String playlistID) throws IOException, ElementNotFoundException {
         List<Song> songList = getSongByPlaylist(playlistID);
         songList.forEach(song -> song.setArtistAndAlbum());
         return songList;
     }
 
-    public static List<Song> getSongByPlaylist(String playlistID) throws IOException {
+    public static List<Song> getSongByPlaylist(String playlistId) throws IOException, ElementNotFoundException {
         List<Song> songIDList = new ArrayList<>();
 
         Element body = get163Connection(PLAYLIST_URL)
-                .data("id", playlistID)
+                .data("id", playlistId)
                 .get().body();
 
         Elements eleSongList = body.selectFirst("ul[class=f-hide]").select("a[href]");
+        if (eleSongList.size() == 0)
+            throw new ElementNotFoundException("Unable to get playlist, id: " + playlistId);
         eleSongList.forEach(song -> {
                     songIDList.add(new Song(song.attr("href").substring(9), song.text()));
                 }
         );
 
-
         return songIDList;
     }
 
-    public static Song getSongByID(String songID) throws IOException {
+    public static Song getSongByID(String songId) throws IOException, ElementNotFoundException {
         Element body = get163Connection(SONG_URL)
-                .data("id", songID)
+                .data("id", songId)
                 .get().body();
 
         Element info = body.selectFirst("div[class=cnt]");
-        if (info == null) {
-            // TODO throw an Exception here
-        }
+        if (info == null)
+            throw new ElementNotFoundException("Unable to get song, id: " + songId);
         String songTitle = info.selectFirst("em[class=f-ff2]").text();
         Elements eleInfo = info.select("a[class=s-fc7]");
         Element eleArtist = eleInfo.get(0);
         Artist artist = new Artist(eleArtist.text(), eleArtist.attr("href").substring(11));
         Element eleAlbum = eleInfo.get(1);
         Album album = new Album(eleAlbum.text(), eleAlbum.attr("href").substring(10));
-        Song song = new Song(songID, songTitle, artist, album);
+        Song song = new Song(songId, songTitle, artist, album);
 
         return song;
     }
 
-    public static void setArtistAndAlbum(Song song) {
+    public static void setArtistAndAlbum(Song song) throws ElementNotFoundException {
         try {
             Element body = get163Connection(SONG_URL)
                     .data("id", song.getId())
                     .get().body();
 
             Element info = body.selectFirst("div[class=cnt]");
+            if (info == null)
+                throw new ElementNotFoundException("Unable to get song : " + song);
             Elements eleInfo = info.select("a[class=s-fc7]");
             Element eleArtist = eleInfo.get(0);
             Artist artist = new Artist(eleArtist.text(), eleArtist.attr("href").substring(11));
@@ -133,3 +133,4 @@ public class Spider {
     }
 
 }
+
