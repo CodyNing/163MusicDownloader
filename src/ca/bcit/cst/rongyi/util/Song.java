@@ -30,7 +30,7 @@ public class Song {
     }
 
     private void makeTitleValid() {
-        this.title
+        this.title = this.title
                 .replace(':', '：')
                 .replace('<', '＜')
                 .replace('>', '＞')
@@ -44,12 +44,11 @@ public class Song {
     public void download(File dir) throws IOException {
         setDownloadURL();
         setArtistAndAlbum();
-        File fp = Downloader.downloadSong(Song.this, dir);
-        try {
-            Downloader.setTag(this, fp);
-        } catch (InvalidDataException | IOException | UnsupportedTagException | NotSupportedException e) {
-            e.printStackTrace();
-        }
+        File fp = Downloader.getInstance().downloadSong(Song.this, dir);
+    }
+
+    public void download() throws IOException {
+        download(Downloader.SONG_DIR);
     }
 
     private void setDownloadURL() {

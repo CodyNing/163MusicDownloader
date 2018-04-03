@@ -50,16 +50,16 @@ public class Main extends Application {
         dialog.setHeaderText("Enter a id number");
         dialog.setContentText("All songs in the playlist will be downloaded");
         dialog.showAndWait().ifPresent(id -> {
-            File dir = chooseDirectory();
             String finalId = id.trim();
             new Thread(() -> {
                 try {
                     List<Song> songList = Spider.getSongByPlaylist(finalId);
                     for (Song song : songList) {
                         try {
-                            song.download(dir);
+                            song.download();
                         } catch (IOException e) {
                             System.out.printf("Unable to download song, %s\n", song);
+                            e.printStackTrace();
                         }
                     }
                     System.out.printf("playlist id: %s, Download Complete", finalId);
@@ -77,11 +77,10 @@ public class Main extends Application {
         dialog.setHeaderText("Enter a id number");
         dialog.setContentText("The Song will be downloaded");
         dialog.showAndWait().ifPresent(id -> {
-            File dir = chooseDirectory();
             String finalId = id.trim();
             new Thread(() -> {
                 try {
-                    Spider.getSongByID(finalId).download(dir);
+                    Spider.getSongByID(finalId).download();
                 } catch (IOException e) {
                     System.out.printf("Unable to download song, id: %s\n", id);
                 } catch (ElementNotFoundException e) {
@@ -89,13 +88,6 @@ public class Main extends Application {
                 }
             }).start();
         });
-    }
-
-    public File chooseDirectory() {
-        DirectoryChooser directoryChooser = new DirectoryChooser();
-        directoryChooser.setTitle("Set the directory to save song files");
-        directoryChooser.setInitialDirectory(new File("./songs/"));
-        return directoryChooser.showDialog(null);
     }
 
 }

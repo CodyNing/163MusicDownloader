@@ -3,29 +3,34 @@ package ca.bcit.cst.rongyi.util;
 import com.mpatric.mp3agic.*;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 
 public class Downloader {
 
-    public static final String DEFAULT_DIR = "./songs/";
-    private static Set<File> localFiles = new HashSet<>();
 
-    public static void updateLocalFileSet() {
-        File dir = new File(DEFAULT_DIR);
-        FilenameFilter filenameFilter = (file, s) -> s.substring(s.lastIndexOf(".")).equals(".mp3");
-        File[] files = dir.listFiles(filenameFilter);
-        Collections.addAll(localFiles, files);
+    public static File SONG_DIR = new File("./songs/");
+
+    private static final Downloader downloader = new Downloader();
+    public static Downloader getInstance() { return downloader; }
+
+    private Downloader() {
+        init();
     }
 
-    public static void setTag(Song song, File fp) throws InvalidDataException, IOException, UnsupportedTagException, NotSupportedException {
+    private void init() {
+        if (!SONG_DIR.exists())
+            SONG_DIR.mkdir();
+    }
+
+    public File setTag(Song song, File fp) throws InvalidDataException, IOException, UnsupportedTagException, NotSupportedException {
         Mp3File mp3file = new Mp3File(fp);
         ID3v2 id3v2Tag;
         if (mp3file.hasId3v2Tag()) {
@@ -41,18 +46,29 @@ public class Downloader {
         String newFileName = fp.getParent() + "\\" + id3v2Tag.getArtist() + " - " + id3v2Tag.getTitle() + ".mp3";
         mp3file.save(newFileName);
         fp.delete();
+        return new File(newFileName);
     }
 
-    public static File downloadSong(Song song, File dir) throws IOException {
-        return downloadSong(song.getTitle(), song.getDownloadURL(), dir);
+    public File downloadSong(Song song, File dir) throws IOException {
+        String targetFileName = dir.getAbsolutePath() + "\\" + song.getArtist().getName() + " - " + song.getTitle();
+        File ofp = new File(targetFileName + ".mp3");
+        // if a file with the same name already exist, do not download it
+        if (ofp.exists()) {
+            System.out.printf("Song: %s already downloaded\n", song.getTitle());
+            return ofp;
+        }
+        File file = downloadSong(new File(targetFileName + "_temp.mp3"), song.getDownloadURL());
+        try {
+            setTag(song, file);
+        } catch (InvalidDataException | UnsupportedTagException | NotSupportedException e) {
+            e.printStackTrace();
+        }
+        return file;
     }
 
-    public static File downloadSong(String name, String url, File dir) throws IOException {
-        File ofp;
-
+    public File downloadSong(File ofp, String url) throws IOException {
         URL website = new URL(url);
         ReadableByteChannel rbc = Channels.newChannel(website.openStream());
-        ofp = new File(dir, name + ".mp3");
         FileOutputStream fos = new FileOutputStream(ofp);
         fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
         rbc.close();
@@ -67,8 +83,35 @@ public class Downloader {
         return ofp;
     }
 
+    public File downloadSong(String name, String url, File dir) throws IOException {
+        return downloadSong(new File(dir, name + ".mp3"), url);
+    }
+
+    public static byte[] MD5(File file) {
+        try {
+            FileInputStream stream = new FileInputStream(file);
+            MessageDigest md = MessageDigest.getInstance("MD5");
+
+            byte[] buffer = new byte[1024];
+            int length = -1;
+            while ((length = stream.read(buffer, 0 ,1024)) != -1) {
+                md.update(buffer, 0, length);
+            }
+
+            stream.close();
+
+            return md.digest();
+        } catch (NoSuchAlgorithmException | IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
     public static void main(String[] args) {
-        Downloader.updateLocalFileSet();
+        File f1 = new File(SONG_DIR, "l1.mp3");
+        File f2 = new File(SONG_DIR, "l2.mp3");
+        System.out.println(Arrays.equals(MD5(f1), MD5(f2)));
     }
 
 }

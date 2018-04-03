@@ -35,7 +35,7 @@ public class Spider {
     public static String getSongDownloadURL(String songID) {
         String url = null;
         try {
-            Element body = Jsoup.connect("https://ouo.us/fm/163/")
+            Element body = Jsoup.connect(DOWNLOADER_URL)
                     .data("id", songID)
                     .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
                     .header("Accept-Encoding", "gzip, deflate, sdch")
@@ -127,7 +127,7 @@ public class Spider {
             song.setArtist(artist);
             song.setAlbum(album);
         } catch (IOException e) {
-            System.out.printf("Cannot Artist and Album from song, id: \n", song.getId());
+            System.out.printf("Cannot get Artist and Album from song, id: \n", song.getId());
         }
     }
 
