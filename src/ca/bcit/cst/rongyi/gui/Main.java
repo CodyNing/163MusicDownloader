@@ -1,8 +1,10 @@
 package ca.bcit.cst.rongyi.gui;
 
 import ca.bcit.cst.rongyi.util.Downloader;
+import ca.bcit.cst.rongyi.util.Song;
 import ca.bcit.cst.rongyi.util.Spider;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -11,6 +13,8 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.List;
 
 public class Main extends Application {
 
@@ -46,11 +50,22 @@ public class Main extends Application {
         dialog.setHeaderText("Enter a id number");
         dialog.setContentText("All songs in the playlist will be downloaded");
         dialog.showAndWait().ifPresent(id -> {
-            id = id.trim();
             File dir = chooseDirectory();
-            Spider.getSongByPlaylist(id).forEach(song ->
-                    Downloader.downloadSong(song, dir)
-            );
+            String finalId = id.trim();
+            new Thread(() -> {
+                try {
+                    List<Song> songList = Spider.getSongByPlaylist(finalId);
+                    for (Song song : songList) {
+                        try {
+                            song.download(dir);
+                        } catch (IOException e) {
+                            System.out.printf("Unable to download song, %s\n", song);
+                        }
+                    }
+                } catch (IOException e) {
+                    System.out.printf("Unable to get playlist, id: %s\n", id);
+                }
+            }).start();
         });
     }
 
@@ -59,9 +74,17 @@ public class Main extends Application {
         dialog.setHeaderText("Enter a id number");
         dialog.setContentText("The Song will be downloaded");
         dialog.showAndWait().ifPresent(id -> {
-            id = id.trim();
             File dir = chooseDirectory();
-            Downloader.downloadSong(Spider.getSongByID(id), dir);
+            String finalId = id.trim();
+            new Thread(() -> {
+                try {
+                    Spider.getSongByID(finalId).download(dir);
+                } catch (IOException e) {
+                    System.out.printf("Unable to download song, id: %s\n", id);
+                }
+            }).start();
+
+
         });
     }
 

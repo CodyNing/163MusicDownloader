@@ -1,10 +1,12 @@
 package ca.bcit.cst.rongyi.util;
 
+import com.mpatric.mp3agic.*;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -53,69 +55,81 @@ public class Spider {
 
             url = body.select("a[class=button]").get(1).attr("href");
         } catch (IOException e) {
-            System.out.printf("Cannot get download URL, id: s%\n", songID);
+            System.out.printf("Cannot get download URL, id: %s\n", songID);
         }
 
         return url;
     }
 
-    public static List<Song> getSongByPlaylist(String playlistID) {
+    public static List<Song> getSongs(List<String> songIDList) throws IOException {
         List<Song> songList = new ArrayList<>();
-        getSongIDByPlaylist(playlistID).forEach(song -> songList.add(getSongByID(song)));
-
-        return songList;
-    }
-
-    public static List<Song> getSongs(List<String> songIDList) {
-        List<Song> songList = new ArrayList<>();
-        songIDList.forEach(songID -> songList.add(getSongByID(songID)));
-
-        return songList;
-    }
-
-    public static List<String> getSongIDByPlaylist(String playlistID) {
-        List<String> songIDList = new ArrayList<>();
-        try {
-            Element body = get163Connection(PLAYLIST_URL)
-                    .data("id", playlistID)
-                    .get().body();
-
-            Elements eleSongList = body.selectFirst("ul[class=f-hide]").select("a[href]");
-            eleSongList.forEach(song -> songIDList.add(song.attr("href").substring(9)));
-        } catch (IOException e) {
-            System.out.printf("Cannot get playlist, id: \n", playlistID);
+        for (String songID : songIDList) {
+            songList.add(getSongByID(songID));
         }
+
+        return songList;
+    }
+
+    public static List<Song> getCompleteSongByPlaylist(String playlistID) throws IOException {
+        List<Song> songList = getSongByPlaylist(playlistID);
+        songList.forEach(song -> song.setArtistAndAlbum());
+        return songList;
+    }
+
+    public static List<Song> getSongByPlaylist(String playlistID) throws IOException {
+        List<Song> songIDList = new ArrayList<>();
+
+        Element body = get163Connection(PLAYLIST_URL)
+                .data("id", playlistID)
+                .get().body();
+
+        Elements eleSongList = body.selectFirst("ul[class=f-hide]").select("a[href]");
+        eleSongList.forEach(song -> {
+                    songIDList.add(new Song(song.attr("href").substring(9), song.text()));
+                }
+        );
+
 
         return songIDList;
     }
 
-    public static Song getSongByID(String songID) {
-        Song song = null;
+    public static Song getSongByID(String songID) throws IOException {
+        Element body = get163Connection(SONG_URL)
+                .data("id", songID)
+                .get().body();
+
+        Element info = body.selectFirst("div[class=cnt]");
+        if (info == null) {
+            // TODO throw an Exception here
+        }
+        String songTitle = info.selectFirst("em[class=f-ff2]").text();
+        Elements eleInfo = info.select("a[class=s-fc7]");
+        Element eleArtist = eleInfo.get(0);
+        Artist artist = new Artist(eleArtist.text(), eleArtist.attr("href").substring(11));
+        Element eleAlbum = eleInfo.get(1);
+        Album album = new Album(eleAlbum.text(), eleAlbum.attr("href").substring(10));
+        Song song = new Song(songID, songTitle, artist, album);
+
+        return song;
+    }
+
+    public static void setArtistAndAlbum(Song song) {
         try {
             Element body = get163Connection(SONG_URL)
-                    .data("id", songID)
+                    .data("id", song.getId())
                     .get().body();
 
             Element info = body.selectFirst("div[class=cnt]");
-            String songTitle = info.selectFirst("em[class=f-ff2]").text();
-            Elements eleInfo= info.select("a[class=s-fc7]");
+            Elements eleInfo = info.select("a[class=s-fc7]");
             Element eleArtist = eleInfo.get(0);
             Artist artist = new Artist(eleArtist.text(), eleArtist.attr("href").substring(11));
             Element eleAlbum = eleInfo.get(1);
             Album album = new Album(eleAlbum.text(), eleAlbum.attr("href").substring(10));
-            song = new Song(songID, songTitle, artist, album);
+            song.setArtist(artist);
+            song.setAlbum(album);
         } catch (IOException e) {
-            System.out.printf("Cannot get song, id: \n", songID);
+            System.out.printf("Cannot Artist and Album from song, id: \n", song.getId());
         }
-
-        System.out.println(song);
-        return song;
     }
-
-    public static void main(String[] args) throws IOException {
-        List<Song> songList = getSongByPlaylist("377238323");
-        System.out.println(songList);
-    }
-
 
 }
