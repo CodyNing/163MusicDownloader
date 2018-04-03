@@ -4,12 +4,26 @@ import com.mpatric.mp3agic.*;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Downloader {
+
+    public static final String DEFAULT_DIR = "./songs/";
+    private static Set<File> localFiles = new HashSet<>();
+
+    public static void updateLocalFileSet() {
+        File dir = new File(DEFAULT_DIR);
+        FilenameFilter filenameFilter = (file, s) -> s.substring(s.lastIndexOf(".")).equals(".mp3");
+        File[] files = dir.listFiles(filenameFilter);
+        Collections.addAll(localFiles, files);
+    }
 
     public static void setTag(Song song, File fp) throws InvalidDataException, IOException, UnsupportedTagException, NotSupportedException {
         Mp3File mp3file = new Mp3File(fp);
@@ -27,7 +41,7 @@ public class Downloader {
         String newFileName = fp.getParent() + "\\" + id3v2Tag.getArtist() + " - " + id3v2Tag.getTitle() + ".mp3";
         mp3file.save(newFileName);
         fp.delete();
-}
+    }
 
     public static File downloadSong(Song song, File dir) throws IOException {
         return downloadSong(song.getTitle(), song.getDownloadURL(), dir);
@@ -51,6 +65,10 @@ public class Downloader {
         }
 
         return ofp;
+    }
+
+    public static void main(String[] args) {
+        Downloader.updateLocalFileSet();
     }
 
 }

@@ -80,12 +80,12 @@ public class Song {
         return artist;
     }
 
-    public Album getAlbum() {
-        return album;
-    }
-
     public void setArtist(Artist artist) {
         this.artist = artist;
+    }
+
+    public Album getAlbum() {
+        return album;
     }
 
     public void setAlbum(Album album) {

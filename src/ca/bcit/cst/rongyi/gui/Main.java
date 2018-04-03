@@ -95,7 +95,7 @@ public class Main extends Application {
         DirectoryChooser directoryChooser = new DirectoryChooser();
         directoryChooser.setTitle("Set the directory to save song files");
         directoryChooser.setInitialDirectory(new File("./songs/"));
-        File dir = directoryChooser.showDialog(null);
-        return dir;
+        return directoryChooser.showDialog(null);
     }
+
 }

@@ -106,9 +106,8 @@ public class Spider {
         Artist artist = new Artist(eleArtist.text(), eleArtist.attr("href").substring(11));
         Element eleAlbum = eleInfo.get(1);
         Album album = new Album(eleAlbum.text(), eleAlbum.attr("href").substring(10));
-        Song song = new Song(songId, songTitle, artist, album);
 
-        return song;
+        return new Song(songId, songTitle, artist, album);
     }
 
     public static void setArtistAndAlbum(Song song) throws ElementNotFoundException {
