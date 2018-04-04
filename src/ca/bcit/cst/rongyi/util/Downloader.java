@@ -11,10 +11,8 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
 
 public class Downloader {
-
 
     public static File SONG_DIR = new File("./songs/");
 
@@ -106,12 +104,6 @@ public class Downloader {
         }
 
         return null;
-    }
-
-    public static void main(String[] args) {
-        File f1 = new File(SONG_DIR, "l1.mp3");
-        File f2 = new File(SONG_DIR, "l2.mp3");
-        System.out.println(Arrays.equals(MD5(f1), MD5(f2)));
     }
 
 }

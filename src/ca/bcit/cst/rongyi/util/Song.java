@@ -1,9 +1,5 @@
 package ca.bcit.cst.rongyi.util;
 
-import com.mpatric.mp3agic.InvalidDataException;
-import com.mpatric.mp3agic.NotSupportedException;
-import com.mpatric.mp3agic.UnsupportedTagException;
-
 import java.io.File;
 import java.io.IOException;
 
@@ -54,7 +50,13 @@ public class Song {
     private void setDownloadURL() {
         if (downloadURL != null)
             return;
-        this.downloadURL = Spider.getSongDownloadURL(this.id);
+        try {
+            this.downloadURL = Spider.getSongDownloadURL(this.id);
+        } catch (IOException e) {
+            System.out.println("Failed to get Download URL From ouo.us");
+            // TODO Try to read the url again (timeout, and max times to try)
+            e.printStackTrace();
+        }
     }
 
     public void setArtistAndAlbum() {
