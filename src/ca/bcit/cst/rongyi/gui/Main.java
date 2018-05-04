@@ -13,6 +13,8 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Main extends Application {
 
@@ -75,12 +77,21 @@ public class Main extends Application {
         dialog.setHeaderText("Enter a id number");
         dialog.setContentText("The Song will be downloaded");
         dialog.showAndWait().ifPresent(id -> {
-            String finalId = id.trim();
+            if (id.matches("^\\d*$")) {
+                id = id.trim();
+            } else {
+                String regex = "song\\?id=(\\d*)";
+                Pattern pattern = Pattern.compile(regex);
+                Matcher matcher = pattern.matcher(id);
+                if (matcher.find())
+                    id = matcher.group(1);
+            }
+            String finalId = id;
             new Thread(() -> {
                 try {
                     Spider.getSongByID(finalId).download();
                 } catch (IOException e) {
-                    System.out.printf("Unable to download song, id: %s\n", id);
+                    System.out.printf("Unable to download song, id: %s\n", finalId);
                 } catch (ElementNotFoundException e) {
                     e.printStackTrace();
                 }

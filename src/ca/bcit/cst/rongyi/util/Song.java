@@ -37,19 +37,24 @@ public class Song {
                 .replace('*', '＊');
     }
 
+    /**
+     * Download the song with mp3 tags to the given directory.
+     *
+     * @param dir
+     * @throws IOException
+     */
     public void download(File dir) throws IOException {
-        setDownloadURL();
-        setArtistAndAlbum();
-        File fp = Downloader.getInstance().downloadSong(Song.this, dir);
+        Downloader.getInstance().downloadSong(Song.this, dir);
     }
 
     public void download() throws IOException {
         download(Downloader.SONG_DIR);
     }
 
-    private void setDownloadURL() {
-        if (downloadURL != null)
+    public void setDownloadURL() {
+        if (downloadURL != null) {
             return;
+        }
         try {
             this.downloadURL = Spider.getSongDownloadURL(this.id);
         } catch (IOException e) {
