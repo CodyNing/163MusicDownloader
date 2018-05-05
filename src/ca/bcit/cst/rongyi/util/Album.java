@@ -2,8 +2,8 @@ package ca.bcit.cst.rongyi.util;
 
 public class Album {
 
-    private String name;
-    private String id;
+    private final String name;
+    private final String id;
 
     public Album(String name, String id) {
         this.name = name;

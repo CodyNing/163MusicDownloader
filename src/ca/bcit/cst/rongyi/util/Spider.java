@@ -63,7 +63,7 @@ public class Spider {
 
     public static List<Song> getCompleteSongByPlaylist(String playlistID) throws IOException, ElementNotFoundException {
         List<Song> songList = getSongByPlaylist(playlistID);
-        songList.forEach(song -> song.setArtistAndAlbum());
+        songList.forEach(Song::setArtistAndAlbum);
         return songList;
     }
 
@@ -74,12 +74,13 @@ public class Spider {
                 .data("id", playlistId)
                 .get().body();
 
-        Elements eleSongList = body.selectFirst("ul[class=f-hide]").select("a[href]");
+        Element eleListDetail = body.selectFirst("ul[class=f-hide]");
+        if (eleListDetail == null)
+            throw new ElementNotFoundException("invalid playlist id, id: " + playlistId);
+        Elements eleSongList = eleListDetail.select("a[href]");
         if (eleSongList.size() == 0)
             throw new ElementNotFoundException("Unable to get playlist, id: " + playlistId);
-        eleSongList.forEach(song -> {
-                    songIDList.add(new Song(song.attr("href").substring(9), song.text()));
-                }
+        eleSongList.forEach(song -> songIDList.add(new Song(song.attr("href").substring(9), song.text()))
         );
 
         return songIDList;
@@ -120,7 +121,7 @@ public class Spider {
             song.setArtist(artist);
             song.setAlbum(album);
         } catch (IOException e) {
-            System.out.printf("Cannot get Artist and Album from song, id: \n", song.getId());
+            System.err.printf("Cannot get Artist and Album from song, id: %s\n", song.getId());
         }
     }
 

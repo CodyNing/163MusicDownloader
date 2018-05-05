@@ -5,45 +5,30 @@ import java.io.IOException;
 
 public class Song {
 
-    private String id;
-    private String title;
+    private final String id;
+    private final String title;
     private Artist artist;
     private Album album;
     private String downloadURL;
 
     public Song(String id, String title, Artist artist, Album album) {
         this.id = id;
-        this.title = title;
+        this.title = Downloader.makeStringValidForWindowsFile(title);
         this.artist = artist;
         this.album = album;
-        makeTitleValid();
     }
 
     public Song(String id, String title) {
         this.id = id;
-        this.title = title;
-        makeTitleValid();
-    }
-
-    private void makeTitleValid() {
-        this.title = this.title
-                .replace(':', '：')
-                .replace('<', '＜')
-                .replace('>', '＞')
-                .replace('\"', '＂')
-                .replace('/', '／')
-                .replace('\\', '｜')
-                .replace('?', '？')
-                .replace('*', '＊');
+        this.title = Downloader.makeStringValidForWindowsFile(title);
     }
 
     /**
      * Download the song with mp3 tags to the given directory.
      *
-     * @param dir
-     * @throws IOException
+     * @param dir directory
      */
-    public void download(File dir) throws IOException {
+    public void download(File dir) {
         Downloader.getInstance().downloadSong(Song.this, dir);
     }
 
@@ -52,15 +37,27 @@ public class Song {
     }
 
     public void setDownloadURL() {
+        setDownloadURL(0);
+    }
+
+    private void setDownloadURL(int tried) {
         if (downloadURL != null) {
             return;
         }
         try {
             this.downloadURL = Spider.getSongDownloadURL(this.id);
         } catch (IOException e) {
-            System.out.println("Failed to get Download URL From ouo.us");
-            // TODO Try to read the url again (timeout, and max times to try)
-            e.printStackTrace();
+            if (tried < 5) {
+                System.out.println("Failed to get Download URL, will try again in 1 second");
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e1) {
+                    e1.printStackTrace();
+                }
+                setDownloadURL(tried + 1);
+            } else {
+                System.err.println("Failed to get Download URL From ouo.us, give up, song id: " + id);
+            }
         }
     }
 
