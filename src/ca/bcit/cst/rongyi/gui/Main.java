@@ -12,6 +12,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.ToolBar;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
@@ -25,7 +26,8 @@ import java.util.regex.Pattern;
 
 public class Main extends Application {
 
-    public static final double WIDTH = 500;
+    public static final double WIDTH = 800;
+    public static final double HEIGHT = 600;
 
     private static final File LOG_DIR = new File("./log/");
     private final UIUtility util = new UIUtility();
@@ -42,11 +44,12 @@ public class Main extends Application {
         root.setPadding(new Insets(10.0));
 
         StatusBar statusBar = util.statusBar();
+        ListView<Downloader.Download> listView = util.downloadListView();
+        VBox.setVgrow(listView, Priority.ALWAYS);
         Center.setStatusBar(statusBar);
-        root.getChildren().addAll(util.buttonBar(), util.downloadListView(), statusBar);
+        root.getChildren().addAll(util.buttonBar(), listView, statusBar);
 
-        primaryStage.setWidth(WIDTH);
-        primaryStage.setScene(new Scene(root));
+        primaryStage.setScene(new Scene(root, WIDTH, HEIGHT));
         primaryStage.setTitle("163 Music Downloader");
         primaryStage.show();
     }
