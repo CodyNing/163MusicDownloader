@@ -1,6 +1,10 @@
 package ca.bcit.cst.rongyi.util;
 
 import com.mpatric.mp3agic.*;
+import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -9,8 +13,11 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.LinkedList;
 
+/**
+ * TODO: cancel download
+ */
 public class Downloader {
 
     public static File SONG_DIR = new File("./songs/");
@@ -30,7 +37,7 @@ public class Downloader {
             SONG_DIR.mkdir();
     }
 
-    private final ConcurrentLinkedQueue<Download> downloadList = new ConcurrentLinkedQueue<>();
+    private final ObservableList<Download> downloadList = FXCollections.synchronizedObservableList(FXCollections.observableList(new LinkedList<Download>()));
     private int maxConcurrentDownload = 5;
     private int currentDownloading = 0;
 
@@ -52,17 +59,40 @@ public class Downloader {
      * @param download the download to be added
      */
     private synchronized void addDownload(Download download) {
-        downloadList.add(download);
+        Platform.runLater(() -> downloadList.add(download));
         startHeadDownload();
     }
 
     private synchronized void startHeadDownload() {
         if (isAllowedToDownload()) {
-            if (!downloadList.isEmpty()) {
-                downloadList.poll().start();
+            if (downloadList.size() > currentDownloading) {
+                new Thread(downloadList.get(currentDownloading)).start();
                 currentDownloading += 1;
             }
         }
+    }
+
+    /**
+     * Download the given song to the given directory
+     *
+     * @param song the song to be downloaded
+     * @param dir  the directory to save the file
+     * @return the downloaded mp3 file
+     */
+    public void downloadSong(Song song, File dir) {
+        song.setArtistAndAlbum();
+        String targetFileName = dir.getAbsolutePath() + "\\" + song.getArtist().getName() + " - " + song.getTitle();
+        File ofp = new File(targetFileName + ".mp3");
+        // if a file with the same name already exist, do not download it
+        // just return the existed file
+        if (ofp.exists()) {
+            System.out.printf("Song: %s already downloaded\n", song.getTitle());
+            return;
+        }
+        System.out.printf("add song %s to download list, %s songs pending\n", song.getTitle(), downloadList.size());
+        File file = new File(targetFileName + "_temp.mp3");
+        Download download = new Download(file, song);
+        addDownload(download);
     }
 
     private void setTag(Song song, File fp) throws InvalidDataException, IOException, UnsupportedTagException, NotSupportedException {
@@ -82,42 +112,21 @@ public class Downloader {
         mp3file.save(newFileName);
         fp.delete();
         System.out.printf("Set mp3 tags for song %s successfully\n", song.getTitle());
-        new File(newFileName);
     }
 
     private boolean isAllowedToDownload() {
         return currentDownloading < maxConcurrentDownload;
     }
 
-    /**
-     * Download the given song to the given directory
-     *
-     * @param song the song to be downloaded
-     * @param dir  the directory to save the file
-     * @return the downloaded mp3 file
-     */
-    public void downloadSong(Song song, File dir) {
-        System.out.printf("add song %s to download list\n", song.getTitle());
-        song.setArtistAndAlbum();
-        String targetFileName = dir.getAbsolutePath() + "\\" + song.getArtist().getName() + " - " + song.getTitle();
-        File ofp = new File(targetFileName + ".mp3");
-        // if a file with the same name already exist, do not download it
-        // just return the existed file
-        if (ofp.exists()) {
-            System.out.printf("Song: %s already downloaded\n", song.getTitle());
-            return;
-        }
-        File file = new File(targetFileName + "_temp.mp3");
-        Download download = new Download(file, song);
-        addDownload(download);
-
-    }
-
     public void setMaxConcurrentDownload(int maxConcurrentDownload) {
         this.maxConcurrentDownload = maxConcurrentDownload;
     }
 
-    private class Download extends Thread {
+    public ObservableList<Download> getDownloadList() {
+        return downloadList;
+    }
+
+    public class Download extends Task<Void> {
 
         private final Song song;
         private final File outputFile;
@@ -125,6 +134,17 @@ public class Downloader {
         Download(File outputFile, Song song) {
             this.song = song;
             this.outputFile = outputFile;
+            this.setOnSucceeded(event -> {
+                System.out.printf("%s Download Complete\n", outputFile.getName());
+                downloadList.remove(this);
+                currentDownloading -= 1;
+                startHeadDownload();
+                try {
+                    setTag(song, outputFile);
+                } catch (InvalidDataException | UnsupportedTagException | NotSupportedException | IOException e) {
+                    System.err.println("Fail to set mp3 tags for song " + song);
+                }
+            });
         }
 
         private void download() throws MalformedURLException {
@@ -136,7 +156,6 @@ public class Downloader {
                 rbc = Channels.newChannel(website.openStream());
                 fos = new FileOutputStream(outputFile);
                 fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-                System.out.printf("%s Download Complete\n", outputFile.getName());
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
@@ -147,30 +166,23 @@ public class Downloader {
                     // let it go
                 }
             }
-
-        }
-
-        private void finishedDownload() {
-            currentDownloading -= 1;
-            startHeadDownload();
-            try {
-                setTag(song, outputFile);
-            } catch (InvalidDataException | UnsupportedTagException | NotSupportedException | IOException e) {
-                System.err.println("Fail to set mp3 tags for song " + song);
-            }
         }
 
         @Override
-        public void run() {
+        public String toString() {
+            return song.getArtist().getName() + " - " + song.getTitle() + (this.isRunning() ? " - Downloading" : " - Pending");
+        }
+
+        @Override
+        protected Void call() throws Exception {
             try {
-                System.out.printf("start downloading Song: %s\n", song.getTitle());
+                System.out.printf("start downloading Song: %s, %s songs pending\n", song.getTitle(), downloadList.size());
                 download();
-                finishedDownload();
             } catch (MalformedURLException e) {
                 System.err.printf("URL: %s does not work\n", song.getDownloadURL());
             }
+            return null;
         }
-
     }
 
 }
