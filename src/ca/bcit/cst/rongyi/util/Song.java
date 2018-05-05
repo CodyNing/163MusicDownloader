@@ -48,9 +48,9 @@ public class Song {
             this.downloadURL = Spider.getSongDownloadURL(this.id);
         } catch (IOException e) {
             if (tried < 5) {
-                System.out.println("Failed to get Download URL, will try again in 1 second");
+                System.out.println("Failed to get Download URL, will try again in 3 second");
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(3000);
                 } catch (InterruptedException e1) {
                     e1.printStackTrace();
                 }

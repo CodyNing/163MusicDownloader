@@ -41,7 +41,9 @@ public class Main extends Application {
         root.setSpacing(10.0);
         root.setPadding(new Insets(10.0));
 
-        root.getChildren().addAll(util.buttonBar(), util.downloadListView());
+        StatusBar statusBar = util.statusBar();
+        Center.setStatusBar(statusBar);
+        root.getChildren().addAll(util.buttonBar(), util.downloadListView(), statusBar);
 
         primaryStage.setWidth(WIDTH);
         primaryStage.setScene(new Scene(root));
@@ -75,12 +77,15 @@ public class Main extends Application {
                             try {
                                 song.download();
                             } catch (IOException e) {
+                                Center.printToStatus(String.format("Unable to download song, %s\n", song));
                                 System.err.printf("Unable to download song, %s\n", song);
                                 e.printStackTrace();
                             }
                         }
+                        Center.printToStatus(String.format("playlist id: %s, all songs added to download list\n", finalId));
                         System.out.printf("playlist id: %s, all songs added to download list\n", finalId);
                     } catch (IOException e) {
+                        Center.printToStatus(String.format("Unable to get playlist, id: %s\n", finalId));
                         System.out.printf("Unable to get playlist, id: %s\n", finalId);
                     } catch (ElementNotFoundException e) {
                         e.printStackTrace();
@@ -116,8 +121,10 @@ public class Main extends Application {
                     try {
                         Spider.getSongByID(finalId).download();
                     } catch (IOException e) {
-                        System.out.printf("Unable to download song, id: %s\n", finalId);
+                        Center.printToStatus(String.format("Unable to download song, id: %s\n", finalId));
+                        System.err.printf("Unable to download song, id: %s\n", finalId);
                     } catch (ElementNotFoundException e) {
+                        Center.printToStatus(String.format("Unable to get song, id: %s\n", finalId));
                         e.printStackTrace();
                     }
                     return null;
@@ -159,6 +166,10 @@ public class Main extends Application {
             ListView<Downloader.Download> downloadListView = new ListView<>(Downloader.getInstance().getDownloadList());
 
             return downloadListView;
+        }
+
+        private StatusBar statusBar() {
+            return new StatusBar();
         }
 
     }

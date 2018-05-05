@@ -1,8 +1,10 @@
 package ca.bcit.cst.rongyi.util;
 
+import ca.bcit.cst.rongyi.gui.Center;
 import com.mpatric.mp3agic.*;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 
@@ -16,7 +18,7 @@ import java.nio.channels.ReadableByteChannel;
 import java.util.LinkedList;
 
 /**
- * TODO: cancel download
+ * TODO: list cell -> cancel download
  */
 public class Downloader {
 
@@ -28,16 +30,16 @@ public class Downloader {
         return downloader;
     }
 
-    private Downloader() {
-        init();
-    }
+    private final ObservableList<Download> downloadList;
 
-    private void init() {
+    private Downloader() {
         if (!SONG_DIR.exists())
             SONG_DIR.mkdir();
+        downloadList = FXCollections.synchronizedObservableList(FXCollections.observableList(new LinkedList<Download>()));
+        downloadList.addListener((ListChangeListener<Download>) c -> {
+            Center.updateListStatus();
+        });
     }
-
-    private final ObservableList<Download> downloadList = FXCollections.synchronizedObservableList(FXCollections.observableList(new LinkedList<Download>()));
     private int maxConcurrentDownload = 5;
     private int currentDownloading = 0;
 
@@ -68,6 +70,7 @@ public class Downloader {
             if (downloadList.size() > currentDownloading) {
                 new Thread(downloadList.get(currentDownloading)).start();
                 currentDownloading += 1;
+                Center.updateListStatus();
             }
         }
     }
@@ -126,6 +129,10 @@ public class Downloader {
         return downloadList;
     }
 
+    public int getCurrentDownloading() {
+        return currentDownloading;
+    }
+
     public class Download extends Task<Void> {
 
         private final Song song;
@@ -136,8 +143,8 @@ public class Downloader {
             this.outputFile = outputFile;
             this.setOnSucceeded(event -> {
                 System.out.printf("%s Download Complete\n", outputFile.getName());
-                downloadList.remove(this);
                 currentDownloading -= 1;
+                downloadList.remove(this);
                 startHeadDownload();
                 try {
                     setTag(song, outputFile);
