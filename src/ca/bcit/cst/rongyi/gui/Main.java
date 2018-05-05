@@ -51,6 +51,13 @@ public class Main extends Application {
 
         primaryStage.setScene(new Scene(root, WIDTH, HEIGHT));
         primaryStage.setTitle("163 Music Downloader");
+
+        primaryStage.setOnCloseRequest(event -> {
+            for (File f : Downloader.TEMP_DIR.listFiles()) {
+                f.delete();
+            }
+        });
+
         primaryStage.show();
     }
 
@@ -86,11 +93,11 @@ public class Main extends Application {
                             }
                         }
                         Center.printToStatus(String.format("playlist id: %s, all songs added to download list\n", finalId));
-                        System.out.printf("playlist id: %s, all songs added to download list\n", finalId);
                     } catch (IOException e) {
                         Center.printToStatus(String.format("Unable to get playlist, id: %s\n", finalId));
-                        System.out.printf("Unable to get playlist, id: %s\n", finalId);
+                        System.err.printf("Unable to get playlist, id: %s\n", finalId);
                     } catch (ElementNotFoundException e) {
+                        Center.printToStatus(String.format("Unable to get playlist, id: %s\n", finalId));
                         e.printStackTrace();
                     }
                     return null;
@@ -167,7 +174,7 @@ public class Main extends Application {
 
         private ListView<Downloader.Download> downloadListView() {
             ListView<Downloader.Download> downloadListView = new ListView<>(Downloader.getInstance().getDownloadList());
-
+            downloadListView.setCellFactory((ListView<Downloader.Download> l) -> new DownloadCell());
             return downloadListView;
         }
 

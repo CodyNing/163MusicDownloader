@@ -33,7 +33,7 @@ public class Song {
     }
 
     public void download() throws IOException {
-        download(Downloader.SONG_DIR);
+        download(Downloader.TEMP_DIR);
     }
 
     public void setDownloadURL() {
@@ -47,16 +47,16 @@ public class Song {
         try {
             this.downloadURL = Spider.getSongDownloadURL(this.id);
         } catch (IOException e) {
-            if (tried < 5) {
-                System.out.println("Failed to get Download URL, will try again in 3 second");
+            if (tried < 3) {
+                System.out.println("Failed to get Download URL, will try again in 15 second, song: " + getTitle());
                 try {
-                    Thread.sleep(3000);
+                    Thread.sleep(15000);
                 } catch (InterruptedException e1) {
                     e1.printStackTrace();
                 }
                 setDownloadURL(tried + 1);
             } else {
-                System.err.println("Failed to get Download URL From ouo.us, give up, song id: " + id);
+                System.err.println("Failed to get Download URL From ouo.us, give up, song: " + getTitle());
             }
         }
     }
@@ -108,5 +108,9 @@ public class Song {
                 ", album=" + album +
                 ", downloadURL='" + downloadURL + '\'' +
                 '}';
+    }
+
+    public boolean exists() {
+        return new File(Downloader.SONG_DIR + "\\" + getArtist().getName() + " - " + getTitle() + ".mp3").exists();
     }
 }

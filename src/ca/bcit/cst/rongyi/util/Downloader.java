@@ -17,12 +17,10 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.LinkedList;
 
-/**
- * TODO: list cell -> cancel download
- */
 public class Downloader {
 
     public static File SONG_DIR = new File("./songs/");
+    public static File TEMP_DIR = new File("./temp/");
 
     private static final Downloader downloader = new Downloader();
 
@@ -35,11 +33,14 @@ public class Downloader {
     private Downloader() {
         if (!SONG_DIR.exists())
             SONG_DIR.mkdir();
+        if (!TEMP_DIR.exists())
+            TEMP_DIR.mkdir();
         downloadList = FXCollections.synchronizedObservableList(FXCollections.observableList(new LinkedList<Download>()));
         downloadList.addListener((ListChangeListener<Download>) c -> {
             Center.updateListStatus();
         });
     }
+
     private int maxConcurrentDownload = 5;
     private int currentDownloading = 0;
 
@@ -61,17 +62,17 @@ public class Downloader {
      * @param download the download to be added
      */
     private synchronized void addDownload(Download download) {
-        Platform.runLater(() -> downloadList.add(download));
-        startHeadDownload();
+        Platform.runLater(() -> {
+            downloadList.add(download);
+            startHeadDownload();
+        });
     }
 
     private synchronized void startHeadDownload() {
-        if (isAllowedToDownload()) {
-            if (downloadList.size() > currentDownloading) {
-                new Thread(downloadList.get(currentDownloading)).start();
-                currentDownloading += 1;
-                Center.updateListStatus();
-            }
+        if (isAllowedToDownload() && downloadList.size() > currentDownloading) {
+            new Thread(downloadList.get(currentDownloading)).start();
+            currentDownloading += 1;
+            Center.updateListStatus();
         }
     }
 
@@ -84,16 +85,12 @@ public class Downloader {
      */
     public void downloadSong(Song song, File dir) {
         song.setArtistAndAlbum();
-        String targetFileName = dir.getAbsolutePath() + "\\" + song.getArtist().getName() + " - " + song.getTitle();
-        File ofp = new File(targetFileName + ".mp3");
-        // if a file with the same name already exist, do not download it
-        // just return the existed file
-        if (ofp.exists()) {
-            System.out.printf("Song: %s already downloaded\n", song.getTitle());
+        if (song.exists()) {
+            Center.printToStatus("Song: " + song.getTitle() + ", already downloaded");
             return;
         }
-        System.out.printf("add song %s to download list, %s songs pending\n", song.getTitle(), downloadList.size());
-        File file = new File(targetFileName + "_temp.mp3");
+        String targetFileName = dir.getAbsolutePath() + "\\" + song.getArtist().getName() + " - " + song.getTitle() + "_temp.mp3";
+        File file = new File(targetFileName);
         Download download = new Download(file, song);
         addDownload(download);
     }
@@ -111,10 +108,9 @@ public class Downloader {
         id3v2Tag.setArtist(song.getArtist().getName());
         id3v2Tag.setTitle(song.getTitle());
         id3v2Tag.setAlbum(song.getAlbum().getName());
-        String newFileName = fp.getParent() + "\\" + id3v2Tag.getArtist() + " - " + id3v2Tag.getTitle() + ".mp3";
+        String newFileName = SONG_DIR + "\\" + id3v2Tag.getArtist() + " - " + id3v2Tag.getTitle() + ".mp3";
         mp3file.save(newFileName);
         fp.delete();
-        System.out.printf("Set mp3 tags for song %s successfully\n", song.getTitle());
     }
 
     private boolean isAllowedToDownload() {
@@ -149,7 +145,7 @@ public class Downloader {
                 try {
                     setTag(song, outputFile);
                 } catch (InvalidDataException | UnsupportedTagException | NotSupportedException | IOException e) {
-                    System.err.println("Fail to set mp3 tags for song " + song);
+                    System.err.println(e.getClass() + " Fail to set mp3 tags for song " + song);
                 }
             });
         }
@@ -164,6 +160,7 @@ public class Downloader {
                 fos = new FileOutputStream(outputFile);
                 fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
             } catch (IOException e) {
+                System.err.println("Unable to download from " + song.getDownloadURL());
                 e.printStackTrace();
             } finally {
                 try {
@@ -183,12 +180,23 @@ public class Downloader {
         @Override
         protected Void call() throws Exception {
             try {
-                System.out.printf("start downloading Song: %s, %s songs pending\n", song.getTitle(), downloadList.size());
                 download();
             } catch (MalformedURLException e) {
                 System.err.printf("URL: %s does not work\n", song.getDownloadURL());
             }
             return null;
+        }
+
+        public void cancelDownload() {
+            downloadList.remove(this);
+            if (this.getState() == State.RUNNING) {
+                currentDownloading -= 1;
+                startHeadDownload();
+                if (outputFile.exists())
+                    outputFile.delete();
+            }
+            this.cancel();
+            Center.printToStatus("Cancelled download song: " + song.getTitle());
         }
     }
 
