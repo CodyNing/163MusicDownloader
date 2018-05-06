@@ -6,7 +6,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
 import javafx.scene.layout.HBox;
 
-public class StatusBar extends HBox {
+class StatusBar extends HBox {
 
     private final Label listStatus = new Label();
     private final Label statusLabel = new Label();

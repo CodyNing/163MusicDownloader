@@ -5,7 +5,7 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.MenuItem;
 
-public class DownloadCell extends ListCell<Downloader.Download> {
+class DownloadCell extends ListCell<Downloader.Download> {
 
     public DownloadCell() {
         ContextMenu contextMenu = new ContextMenu();

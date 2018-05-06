@@ -2,8 +2,11 @@ package ca.bcit.cst.rongyi.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 
-public class Song {
+public class Song implements Serializable {
+
+    private static final long serialVersionUID = 501L;
 
     private final String id;
     private final String title;
@@ -16,11 +19,14 @@ public class Song {
         this.title = Downloader.makeStringValidForWindowsFile(title);
         this.artist = artist;
         this.album = album;
+
+        if (album != null)
+            album.addSong(this);
+        Database.addSong(this);
     }
 
     public Song(String id, String title) {
-        this.id = id;
-        this.title = Downloader.makeStringValidForWindowsFile(title);
+        this(id, title, null, null);
     }
 
     /**
@@ -32,7 +38,7 @@ public class Song {
         Downloader.getInstance().downloadSong(Song.this, dir);
     }
 
-    public void download() throws IOException {
+    public void download() {
         download(Downloader.TEMP_DIR);
     }
 
@@ -48,7 +54,7 @@ public class Song {
             this.downloadURL = Spider.getSongDownloadURL(this.id);
         } catch (IOException e) {
             if (tried < 3) {
-                System.out.println("Failed to get Download URL, will try again in 15 second, song: " + getTitle());
+                System.err.println("Failed to get Download URL, will try again in 15 second, song: " + getTitle());
                 try {
                     Thread.sleep(15000);
                 } catch (InterruptedException e1) {
@@ -93,6 +99,7 @@ public class Song {
 
     public void setAlbum(Album album) {
         this.album = album;
+        album.addSong(this);
     }
 
     public String getDownloadURL() {
@@ -104,8 +111,8 @@ public class Song {
         return "Song{" +
                 "id='" + id + '\'' +
                 ", title='" + title + '\'' +
-                ", artist=" + artist +
-                ", album=" + album +
+                ", artist=" + (artist != null ? artist.getName() : "null") +
+                ", album=" + (album != null ? album.getName() : "null") +
                 ", downloadURL='" + downloadURL + '\'' +
                 '}';
     }

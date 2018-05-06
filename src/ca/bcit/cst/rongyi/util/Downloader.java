@@ -15,12 +15,13 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.util.Collection;
 import java.util.LinkedList;
 
 public class Downloader {
 
-    public static File SONG_DIR = new File("./songs/");
-    public static File TEMP_DIR = new File("./temp/");
+    public static final File SONG_DIR = new File("./songs/");
+    public static final File TEMP_DIR = new File("./temp/");
 
     private static final Downloader downloader = new Downloader();
 
@@ -36,9 +37,7 @@ public class Downloader {
         if (!TEMP_DIR.exists())
             TEMP_DIR.mkdir();
         downloadList = FXCollections.synchronizedObservableList(FXCollections.observableList(new LinkedList<Download>()));
-        downloadList.addListener((ListChangeListener<Download>) c -> {
-            Center.updateListStatus();
-        });
+        downloadList.addListener((ListChangeListener<Download>) c -> Center.updateListStatus());
     }
 
     private int maxConcurrentDownload = 5;
@@ -81,7 +80,6 @@ public class Downloader {
      *
      * @param song the song to be downloaded
      * @param dir  the directory to save the file
-     * @return the downloaded mp3 file
      */
     public void downloadSong(Song song, File dir) {
         song.setArtistAndAlbum();
@@ -93,6 +91,12 @@ public class Downloader {
         File file = new File(targetFileName);
         Download download = new Download(file, song);
         addDownload(download);
+    }
+
+    public void downloadSong(Collection<Song> songCollection) {
+        for (Song song : songCollection) {
+            song.download();
+        }
     }
 
     private void setTag(Song song, File fp) throws InvalidDataException, IOException, UnsupportedTagException, NotSupportedException {
@@ -111,6 +115,7 @@ public class Downloader {
         String newFileName = SONG_DIR + "\\" + id3v2Tag.getArtist() + " - " + id3v2Tag.getTitle() + ".mp3";
         mp3file.save(newFileName);
         fp.delete();
+        Center.printToStatus(id3v2Tag.getArtist() + " - " + id3v2Tag.getTitle() + " download Complete");
     }
 
     private boolean isAllowedToDownload() {
@@ -138,20 +143,26 @@ public class Downloader {
             this.song = song;
             this.outputFile = outputFile;
             this.setOnSucceeded(event -> {
-                System.out.printf("%s Download Complete\n", outputFile.getName());
                 currentDownloading -= 1;
                 downloadList.remove(this);
                 startHeadDownload();
                 try {
                     setTag(song, outputFile);
-                } catch (InvalidDataException | UnsupportedTagException | NotSupportedException | IOException e) {
+                } catch (InvalidDataException | UnsupportedTagException | NotSupportedException e) {
                     System.err.println(e.getClass() + " Fail to set mp3 tags for song " + song);
+                } catch (IOException e) {
+                    // let it go.. usually because the song cannot be downloaded
                 }
             });
         }
 
         private void download() throws MalformedURLException {
             song.setDownloadURL();
+            if (song.getDownloadURL() == null) {
+                Center.printToStatus("Unable to get URL for song " + song.getTitle() + ", append task at the end of download list.");
+                addDownload(new Download(outputFile, song));
+                return;
+            }
             URL website = new URL(song.getDownloadURL());
             ReadableByteChannel rbc = null;
             FileOutputStream fos = null;
@@ -178,7 +189,7 @@ public class Downloader {
         }
 
         @Override
-        protected Void call() throws Exception {
+        protected Void call() {
             try {
                 download();
             } catch (MalformedURLException e) {
