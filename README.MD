@@ -17,8 +17,8 @@ Make sure import the libraries before building the project. (The project may be 
 You can find the jar executable here (required java install on your machine)
 https://github.com/CRonYii/163MusicDownloader/releases
 
-Since the application will generate 3 folders (songs / temp / log)
-Make sure you place the 163Music-release.jar in a folder separate from other files / folders
+Since the application will generate 3 folders (songs / temp / log),
+make sure you place the 163Music-release.jar in a folder separate from other files / folders
 
 If any error occur, please locate log files under the ./log folder
 

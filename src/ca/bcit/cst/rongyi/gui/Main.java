@@ -36,6 +36,7 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        registerErrorLog();
         Database.getInstance();
 
         VBox root = new VBox();
@@ -95,7 +96,7 @@ public class Main extends Application {
         if (!LOG_DIR.exists())
             LOG_DIR.mkdir();
         try {
-            File logFile = new File(LOG_DIR.getAbsolutePath() + "\\error log - " + Downloader.makeStringValidForWindowsFile(LocalDateTime.now().toString()) + ".txt");
+            File logFile = new File(LOG_DIR, "error log - " + Downloader.makeStringValidForWindowsFile(LocalDateTime.now().toString()) + ".txt");
             logFile.createNewFile();
             System.setErr(new PrintStream(logFile));
         } catch (IOException e) {

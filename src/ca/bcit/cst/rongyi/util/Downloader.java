@@ -87,8 +87,7 @@ public class Downloader {
             Center.printToStatus("Song: " + song.getTitle() + ", already downloaded");
             return;
         }
-        String targetFileName = dir.getAbsolutePath() + "\\" + song.getArtist().getName() + " - " + song.getTitle() + "_temp.mp3";
-        File file = new File(targetFileName);
+        File file = new File(dir, song.getArtist().getName() + " - " + song.getTitle() + "_temp.mp3");
         Download download = new Download(file, song);
         addDownload(download);
     }
