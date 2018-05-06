@@ -2,7 +2,7 @@ package ca.bcit.cst.rongyi.gui;
 
 import javafx.concurrent.Task;
 
-public class ReadIDTask extends Task<Void> {
+class ReadIDTask extends Task<Void> {
 
     private final String id;
     private final DownloadEvent event;

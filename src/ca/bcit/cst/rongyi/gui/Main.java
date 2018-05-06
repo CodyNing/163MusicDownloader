@@ -116,6 +116,12 @@ public class Main extends Application {
             Button songButton = new Button("Single Song");
             songButton.setOnAction(e -> promptDialog(new DownloadEvent.SongDownloadEvent(), "song", "The Song will be downloaded"));
 
+            Button albumButton = new Button("Album");
+            albumButton.setOnAction(event -> promptDialog(new DownloadEvent.AlbumDownloadEvent(), "album", "All songs in the album will be downloaded"));
+
+            Button artistButton = new Button("All Songs of Artist");
+            artistButton.setOnAction(event -> promptDialog(new DownloadEvent.ArtistDownloadEvent(), "artist", "All songs of artist will be downloaded"));
+
             Button openFolderButton = new Button("Open Containing Folder");
             openFolderButton.setOnAction(event -> {
                 try {
@@ -126,7 +132,7 @@ public class Main extends Application {
                 }
             });
 
-            toolBar.getItems().addAll(playlistButton, songButton, openFolderButton);
+            toolBar.getItems().addAll(playlistButton, songButton, albumButton, artistButton, openFolderButton);
 
             return toolBar;
         }

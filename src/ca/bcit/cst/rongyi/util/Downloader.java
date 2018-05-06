@@ -20,8 +20,8 @@ import java.util.LinkedList;
 
 public class Downloader {
 
-    public static File SONG_DIR = new File("./songs/");
-    public static File TEMP_DIR = new File("./temp/");
+    public static final File SONG_DIR = new File("./songs/");
+    public static final File TEMP_DIR = new File("./temp/");
 
     private static final Downloader downloader = new Downloader();
 
@@ -37,9 +37,7 @@ public class Downloader {
         if (!TEMP_DIR.exists())
             TEMP_DIR.mkdir();
         downloadList = FXCollections.synchronizedObservableList(FXCollections.observableList(new LinkedList<Download>()));
-        downloadList.addListener((ListChangeListener<Download>) c -> {
-            Center.updateListStatus();
-        });
+        downloadList.addListener((ListChangeListener<Download>) c -> Center.updateListStatus());
     }
 
     private int maxConcurrentDownload = 5;
@@ -82,7 +80,6 @@ public class Downloader {
      *
      * @param song the song to be downloaded
      * @param dir  the directory to save the file
-     * @return the downloaded mp3 file
      */
     public void downloadSong(Song song, File dir) {
         song.setArtistAndAlbum();
@@ -118,7 +115,7 @@ public class Downloader {
         String newFileName = SONG_DIR + "\\" + id3v2Tag.getArtist() + " - " + id3v2Tag.getTitle() + ".mp3";
         mp3file.save(newFileName);
         fp.delete();
-        Center.printToStatus(newFileName + " download Complete");
+        Center.printToStatus(id3v2Tag.getArtist() + " - " + id3v2Tag.getTitle() + " download Complete");
     }
 
     private boolean isAllowedToDownload() {
@@ -151,8 +148,10 @@ public class Downloader {
                 startHeadDownload();
                 try {
                     setTag(song, outputFile);
-                } catch (InvalidDataException | UnsupportedTagException | NotSupportedException | IOException e) {
+                } catch (InvalidDataException | UnsupportedTagException | NotSupportedException e) {
                     System.err.println(e.getClass() + " Fail to set mp3 tags for song " + song);
+                } catch (IOException e) {
+                    // let it go.. usually because the song cannot be downloaded
                 }
             });
         }

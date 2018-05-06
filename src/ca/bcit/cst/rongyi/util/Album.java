@@ -13,7 +13,7 @@ public class Album implements Serializable {
     private final Artist artist;
     private final String name;
     private final String id;
-    private Set<Song> songList;
+    private final Set<Song> songList;
 
     public Album(Artist artist, String name, String id) {
         this(artist, name, id, new HashSet<>());

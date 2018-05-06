@@ -13,10 +13,14 @@ import java.util.Set;
 
 public class Spider {
 
-    public static final String PLAYLIST_URL = "http://music.163.com/playlist";
-    public static final String SONG_URL = "http://music.163.com/song";
-    public static final String ALBUM_URL = "http://music.163.com/album";
-    public static final String DOWNLOADER_URL = "https://ouo.us/fm/163/";
+    private static final String PLAYLIST_URL = "http://music.163.com/playlist";
+    private static final String SONG_URL = "http://music.163.com/song";
+    private static final String ALBUM_URL = "http://music.163.com/album";
+    private static final String ARTIST_URL = "http://music.163.com/artist/album";
+    private static final String DOWNLOADER_URL = "https://ouo.us/fm/163/";
+
+    /* The number of albums to display in one page, set to 1000 because want all albums at once */
+    private static final String DISPLAY_LIMIT = "1000";
 
     private static Connection get163Connection(String url) {
         return Jsoup.connect(url)
@@ -173,6 +177,32 @@ public class Spider {
         return new Song(songId, songTitle, artist, album);
     }
 
+    public static Artist getArtistByID(String artistID) throws IOException, ElementNotFoundException {
+        Artist artist;
+
+        Element body = get163Connection(ARTIST_URL)
+                .data("id", artistID)
+                .data("limit", DISPLAY_LIMIT)
+                .get().body();
+
+        Element artistName = body.selectFirst("h2[id=artist-name]");
+        if (artistName == null)
+            throw new ElementNotFoundException("Unable to get artist, id: " + artistID);
+
+        Set<Album> albumSet = new HashSet<>();
+        Elements eleInfo = body.selectFirst("ul[class=m-cvrlst m-cvrlst-alb4 f-cb]").select("a[class=icon-play f-alpha]");
+        if (eleInfo == null)
+            throw new ElementNotFoundException("Unable to get albums, id: " + artistID);
+        for (Element e : eleInfo) {
+            String albumID = e.attr("data-res-id");
+            albumSet.add(getAlbumByID(albumID));
+        }
+
+        artist = new Artist(artistName.text(), artistID, albumSet);
+
+        return artist;
+    }
+
     public static void setArtistAndAlbum(Song song) throws ElementNotFoundException {
         try {
             Element body = get163Connection(SONG_URL)
@@ -192,11 +222,6 @@ public class Spider {
         } catch (IOException e) {
             System.err.printf("Cannot get Artist and Album from song, id: %s\n", song.getId());
         }
-    }
-
-    public static void main(String[] args) throws IOException, ElementNotFoundException {
-        Playlist playlist = getPlaylistByID("822584122");
-        System.out.println(playlist);
     }
 
 }
