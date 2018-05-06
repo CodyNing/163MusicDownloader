@@ -36,7 +36,6 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-//        registerErrorLog();
         Database.getInstance();
 
         VBox root = new VBox();
