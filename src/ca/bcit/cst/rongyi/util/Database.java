@@ -1,6 +1,6 @@
 package ca.bcit.cst.rongyi.util;
 
-import ca.bcit.cst.rongyi.gui.Center;
+import ca.bcit.cst.rongyi.ui.Center;
 
 import java.io.*;
 import java.util.HashMap;

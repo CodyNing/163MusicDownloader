@@ -11,6 +11,7 @@ Make sure import the libraries before building the project. (The project may be 
 
 * JSoup: https://jsoup.org/download Web Crawler Library
 * mp3agic: https://github.com/mpatric/mp3agic Used for mp3 tags edition
+* JFoenix: https://github.com/jfoenixadmin/JFoenix JavaFX Material Design
 
 # Release
 

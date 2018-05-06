@@ -1,6 +1,6 @@
 package ca.bcit.cst.rongyi.util;
 
-import ca.bcit.cst.rongyi.gui.Center;
+import ca.bcit.cst.rongyi.ui.Center;
 import com.mpatric.mp3agic.*;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;

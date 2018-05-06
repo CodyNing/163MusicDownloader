@@ -1,11 +1,11 @@
-package ca.bcit.cst.rongyi.gui;
+package ca.bcit.cst.rongyi.ui;
 
 import ca.bcit.cst.rongyi.util.Downloader;
+import com.jfoenix.controls.JFXListCell;
 import javafx.scene.control.ContextMenu;
-import javafx.scene.control.ListCell;
 import javafx.scene.control.MenuItem;
 
-class DownloadCell extends ListCell<Downloader.Download> {
+class DownloadCell extends JFXListCell<Downloader.Download> {
 
     public DownloadCell() {
         ContextMenu contextMenu = new ContextMenu();

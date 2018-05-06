@@ -1,4 +1,4 @@
-package ca.bcit.cst.rongyi.gui;
+package ca.bcit.cst.rongyi.ui;
 
 import ca.bcit.cst.rongyi.util.ElementNotFoundException;
 import ca.bcit.cst.rongyi.util.Playlist;
