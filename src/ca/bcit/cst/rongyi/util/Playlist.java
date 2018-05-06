@@ -3,41 +3,32 @@ package ca.bcit.cst.rongyi.util;
 import ca.bcit.cst.rongyi.gui.Center;
 
 import java.io.IOException;
-import java.util.List;
+import java.io.Serializable;
+import java.util.Set;
 
-public class Playlist {
+public class Playlist implements Serializable {
+
+    private static final long serialVersionUID = 504L;
 
     private final String id;
     private final String title;
-    private List<Song> songList;
+    private Set<Song> songList;
 
     public Playlist(String id, String title) throws IOException, ElementNotFoundException {
-        this.id = id;
-        this.title = title;
-        getPlaylist();
+        this(id, title, Spider.getSongByPlaylist(id));
     }
 
-    public Playlist(String id, String title, List<Song> songList) {
+    public Playlist(String id, String title, Set<Song> songList) {
         this.id = id;
         this.title = title;
         this.songList = songList;
-    }
 
-    private void getPlaylist() throws IOException, ElementNotFoundException {
-        this.songList = Spider.getSongByPlaylist(id);
+        Database.addPlaylist(this);
     }
 
     public void downloadAllSongs() {
-        for (Song song : songList) {
-            try {
-                song.download();
-            } catch (IOException e) {
-                Center.printToStatus(String.format("Unable to download song, %s\n", song));
-                System.err.printf("Unable to download song, %s\n", song);
-                e.printStackTrace();
-            }
-        }
-        Center.printToStatus(String.format("playlist id: %s, all songs added to download list\n", id));
+        Downloader.getInstance().downloadSong(songList);
+        Center.printToStatus(String.format("playlist %s, all songs added to download list\n", title));
     }
 
     public String getId() {
@@ -48,11 +39,11 @@ public class Playlist {
         return title;
     }
 
-    public List<Song> getSongList() {
+    public Set<Song> getSongList() {
         return songList;
     }
 
-    public void setSongList(List<Song> songList) {
+    public void setSongList(Set<Song> songList) {
         this.songList = songList;
     }
 

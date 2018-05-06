@@ -15,6 +15,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.util.Collection;
 import java.util.LinkedList;
 
 public class Downloader {
@@ -95,6 +96,12 @@ public class Downloader {
         addDownload(download);
     }
 
+    public void downloadSong(Collection<Song> songCollection) {
+        for (Song song : songCollection) {
+            song.download();
+        }
+    }
+
     private void setTag(Song song, File fp) throws InvalidDataException, IOException, UnsupportedTagException, NotSupportedException {
         Mp3File mp3file = new Mp3File(fp);
         ID3v2 id3v2Tag;
@@ -111,6 +118,7 @@ public class Downloader {
         String newFileName = SONG_DIR + "\\" + id3v2Tag.getArtist() + " - " + id3v2Tag.getTitle() + ".mp3";
         mp3file.save(newFileName);
         fp.delete();
+        Center.printToStatus(newFileName + " download Complete");
     }
 
     private boolean isAllowedToDownload() {
@@ -151,6 +159,11 @@ public class Downloader {
 
         private void download() throws MalformedURLException {
             song.setDownloadURL();
+            if (song.getDownloadURL() == null) {
+                Center.printToStatus("Unable to get URL for song " + song.getTitle() + ", append task at the end of download list.");
+                addDownload(new Download(outputFile, song));
+                return;
+            }
             URL website = new URL(song.getDownloadURL());
             ReadableByteChannel rbc = null;
             FileOutputStream fos = null;
@@ -158,7 +171,6 @@ public class Downloader {
                 rbc = Channels.newChannel(website.openStream());
                 fos = new FileOutputStream(outputFile);
                 fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-                System.out.printf("%s Download Complete\n", outputFile.getName());
             } catch (IOException e) {
                 System.err.println("Unable to download from " + song.getDownloadURL());
                 e.printStackTrace();
@@ -178,7 +190,7 @@ public class Downloader {
         }
 
         @Override
-        protected Void call() throws Exception {
+        protected Void call() {
             try {
                 download();
             } catch (MalformedURLException e) {

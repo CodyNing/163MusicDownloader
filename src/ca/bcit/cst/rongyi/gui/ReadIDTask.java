@@ -13,7 +13,7 @@ public class ReadIDTask extends Task<Void> {
     }
 
     @Override
-    protected Void call() throws Exception {
+    protected Void call() {
         this.event.run(id);
         return null;
     }

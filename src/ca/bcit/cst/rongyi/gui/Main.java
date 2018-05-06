@@ -1,5 +1,6 @@
 package ca.bcit.cst.rongyi.gui;
 
+import ca.bcit.cst.rongyi.util.Database;
 import ca.bcit.cst.rongyi.util.Downloader;
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -13,9 +14,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 import java.awt.*;
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintStream;
+import java.io.*;
 import java.time.LocalDateTime;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -38,6 +37,8 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) {
 //        registerErrorLog();
+        Database.getInstance();
+
         VBox root = new VBox();
         root.setSpacing(10.0);
         root.setPadding(new Insets(10.0));
@@ -54,6 +55,12 @@ public class Main extends Application {
         primaryStage.setOnCloseRequest(event -> {
             for (File f : Downloader.TEMP_DIR.listFiles()) {
                 f.delete();
+            }
+            try {
+                ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(Database.OUTPUT));
+                out.writeObject(Database.getInstance());
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         });
 

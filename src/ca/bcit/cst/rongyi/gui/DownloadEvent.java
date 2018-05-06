@@ -41,11 +41,4 @@ public interface DownloadEvent {
         }
     }
 
-    class AlbumDownloadEvent implements DownloadEvent {
-
-        @Override
-        public void run(String id) {
-            // TODO use Spider to get Album
-        }
-    }
 }
