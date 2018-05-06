@@ -11,9 +11,9 @@ import java.util.List;
 
 public class Spider {
 
-    public static final String BASE_URL = "http://music.163.com";
     public static final String PLAYLIST_URL = "http://music.163.com/playlist";
     public static final String SONG_URL = "http://music.163.com/song";
+    public static final String ALBUM_URL = "http://music.163.com/album";
     public static final String DOWNLOADER_URL = "https://ouo.us/fm/163/";
 
     private static Connection get163Connection(String url) {
@@ -86,6 +86,62 @@ public class Spider {
         return songIDList;
     }
 
+    public static Playlist getPlaylistByID(String playlistId) throws IOException, ElementNotFoundException {
+        List<Song> songList = new ArrayList<>();
+        Element body = get163Connection(PLAYLIST_URL)
+                .data("id", playlistId)
+                .get().body();
+
+        Element elePlaylistTitle = body.selectFirst("h2[class=f-ff2 f-brk]");
+        if (elePlaylistTitle == null)
+            throw new ElementNotFoundException("cannot find playlist title, id: " + playlistId);
+        Element eleListDetail = body.selectFirst("ul[class=f-hide]");
+        if (eleListDetail == null)
+            throw new ElementNotFoundException("invalid playlist id, id: " + playlistId);
+        Elements eleSongList = eleListDetail.select("a[href]");
+        if (eleSongList.size() == 0)
+            throw new ElementNotFoundException("Unable to get playlist, id: " + playlistId);
+        eleSongList.forEach(song -> songList.add(new Song(song.attr("href").substring(9), song.text()))
+        );
+
+
+        return new Playlist(playlistId, elePlaylistTitle.text(), songList);
+    }
+
+    public static Album getAlbumByID(String albumID) throws IOException, ElementNotFoundException {
+        List<Song> songList = new ArrayList<>();
+        Element body = get163Connection(ALBUM_URL)
+                .data("id", albumID)
+                .get().body();
+
+        Element eleAlbumTitle = body.selectFirst("div[class=tit]").selectFirst("h2[class=f-ff2]");
+        if (eleAlbumTitle == null)
+            throw new ElementNotFoundException("cannot find album title, id: " + albumID);
+
+        Element eleArtist = body.selectFirst("p[class=intr]").selectFirst("a[class=s-fc7]");
+        if (eleArtist == null)
+            throw new ElementNotFoundException("cannot find artist, id: " + albumID);
+        Artist artist = new Artist(eleArtist.text(), eleArtist.attr("href").substring(11));
+
+        Element eleListDetail = body.selectFirst("ul[class=f-hide]");
+        if (eleListDetail == null)
+            throw new ElementNotFoundException("invalid playlist id, id: " + albumID);
+        Elements eleSongList = eleListDetail.select("a[href]");
+        if (eleSongList.size() == 0)
+            throw new ElementNotFoundException("Unable to get playlist, id: " + albumID);
+
+        Album album = new Album(artist, eleAlbumTitle.text(), albumID, songList);
+        eleSongList.forEach(song -> {
+            Song temp = new Song(song.attr("href").substring(9), song.text());
+            temp.setArtist(artist);
+            temp.setAlbum(album);
+            songList.add(temp);
+        });
+
+
+        return album;
+    }
+
     public static Song getSongByID(String songId) throws IOException, ElementNotFoundException {
         Element body = get163Connection(SONG_URL)
                 .data("id", songId)
@@ -99,7 +155,7 @@ public class Spider {
         Element eleArtist = eleInfo.get(0);
         Artist artist = new Artist(eleArtist.text(), eleArtist.attr("href").substring(11));
         Element eleAlbum = eleInfo.get(1);
-        Album album = new Album(eleAlbum.text(), eleAlbum.attr("href").substring(10));
+        Album album = new Album(artist, eleAlbum.text(), eleAlbum.attr("href").substring(10));
 
         return new Song(songId, songTitle, artist, album);
     }
@@ -117,12 +173,17 @@ public class Spider {
             Element eleArtist = eleInfo.get(0);
             Artist artist = new Artist(eleArtist.text(), eleArtist.attr("href").substring(11));
             Element eleAlbum = eleInfo.get(1);
-            Album album = new Album(eleAlbum.text(), eleAlbum.attr("href").substring(10));
+            Album album = new Album(artist, eleAlbum.text(), eleAlbum.attr("href").substring(10));
             song.setArtist(artist);
             song.setAlbum(album);
         } catch (IOException e) {
             System.err.printf("Cannot get Artist and Album from song, id: %s\n", song.getId());
         }
+    }
+
+    public static void main(String[] args) throws IOException, ElementNotFoundException {
+        Playlist playlist = getPlaylistByID("822584122");
+        System.out.println(playlist);
     }
 
 }

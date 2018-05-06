@@ -1,9 +1,12 @@
 package ca.bcit.cst.rongyi.util;
 
+import java.util.List;
+
 public class Artist {
 
     private final String name;
     private final String id;
+    private List<Album> albumList;
 
     public Artist(String name, String id) {
         this.name = name;

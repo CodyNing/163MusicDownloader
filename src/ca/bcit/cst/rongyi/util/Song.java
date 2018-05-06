@@ -104,8 +104,8 @@ public class Song {
         return "Song{" +
                 "id='" + id + '\'' +
                 ", title='" + title + '\'' +
-                ", artist=" + artist +
-                ", album=" + album +
+                ", artist=" + (artist != null ? artist.getName() : "null") +
+                ", album=" + (album != null ? album.getName() : "null") +
                 ", downloadURL='" + downloadURL + '\'' +
                 '}';
     }

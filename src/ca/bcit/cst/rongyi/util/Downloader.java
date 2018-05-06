@@ -138,7 +138,6 @@ public class Downloader {
             this.song = song;
             this.outputFile = outputFile;
             this.setOnSucceeded(event -> {
-                System.out.printf("%s Download Complete\n", outputFile.getName());
                 currentDownloading -= 1;
                 downloadList.remove(this);
                 startHeadDownload();
@@ -159,6 +158,7 @@ public class Downloader {
                 rbc = Channels.newChannel(website.openStream());
                 fos = new FileOutputStream(outputFile);
                 fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+                System.out.printf("%s Download Complete\n", outputFile.getName());
             } catch (IOException e) {
                 System.err.println("Unable to download from " + song.getDownloadURL());
                 e.printStackTrace();
