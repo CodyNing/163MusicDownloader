@@ -22,7 +22,7 @@
 # CMake
 cmake-build-debug/
 cmake-build-release/
-
+gi
 # Mongo Explorer plugin
 .idea/**/mongoSettings.xml
 
