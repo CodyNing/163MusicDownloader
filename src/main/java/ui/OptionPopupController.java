@@ -27,9 +27,9 @@ public class OptionPopupController implements Initializable {
 
     private VBox settingRoot;
 
-    private JFXTextField maxConcurrentField = new JFXTextField(String.valueOf(Database.getInstance().getMaxConcurrentDownload()));
-    private JFXTextField waitTimeField = new JFXTextField(String.valueOf(Database.getInstance().getFailConnectionWaitTime()));
-    private JFXTextField reconnectTimeField = new JFXTextField(String.valueOf(Database.getInstance().getReconnectionTimes()));
+    private final JFXTextField maxConcurrentField = new JFXTextField(String.valueOf(Database.getInstance().getMaxConcurrentDownload()));
+    private final JFXTextField waitTimeField = new JFXTextField(String.valueOf(Database.getInstance().getFailConnectionWaitTime()));
+    private final JFXTextField reconnectTimeField = new JFXTextField(String.valueOf(Database.getInstance().getReconnectionTimes()));
 
     @FXML
     public void openSettings() {
@@ -110,9 +110,7 @@ public class OptionPopupController implements Initializable {
         Label promptLabel = new Label(label);
         promptLabel.setFont(new Font(10.0));
         textField.setValidators(new PositiveNumberValidator("Must be a positive number"));
-        textField.focusedProperty().addListener((observable, oldValue, newValue) -> {
-            textField.validate();
-        });
+        textField.focusedProperty().addListener((observable, oldValue, newValue) -> textField.validate());
         textField.setPromptText(promptText);
         textField.setLabelFloat(true);
 

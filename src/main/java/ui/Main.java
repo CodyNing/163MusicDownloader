@@ -1,7 +1,6 @@
 package ui;
 
 import com.jfoenix.controls.JFXDecorator;
-import com.jfoenix.svg.SVGGlyph;
 import javafx.application.Application;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
@@ -20,12 +19,10 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        FXMLLoader loader = new FXMLLoader();
-        Parent root = loader.load(getClass().getResource("/fxml/Main.fxml"));
+        Parent root = FXMLLoader.load(getClass().getResource("/fxml/Main.fxml"));
 
         JFXDecorator decorator = new JFXDecorator(primaryStage, root);
         decorator.setCustomMaximize(true);
-        decorator.setGraphic(new SVGGlyph(""));
 
         Scene scene = new Scene(decorator, WIDTH, HEIGHT);
         final ObservableList<String> stylesheets = scene.getStylesheets();

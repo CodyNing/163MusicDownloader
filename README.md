@@ -1,6 +1,6 @@
 # 163Music
 
-A web spider music download application build on JavFX.
+A web spider music download application build on JavaFX.
 
 # Data Source
 * Music Information fetched from http://music.163.com

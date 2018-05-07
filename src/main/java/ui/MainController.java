@@ -64,18 +64,14 @@ public class MainController implements Initializable {
         } catch (IOException ioExc) {
             ioExc.printStackTrace();
         }
-        titleBurger.setOnMouseClicked(event -> {
-            downloadPopup.show(titleRippler, JFXPopup.PopupVPosition.TOP, JFXPopup.PopupHPosition.LEFT, 50.0, 10.0);
-        });
+        titleBurger.setOnMouseClicked(event -> downloadPopup.show(titleRippler, JFXPopup.PopupVPosition.TOP, JFXPopup.PopupHPosition.LEFT, 50.0, 10.0));
 
         try {
             optionPopup = new JFXPopup(FXMLLoader.load(getClass().getResource("/fxml/ui/OptionPopup.fxml")));
         } catch (IOException ioExc) {
             ioExc.printStackTrace();
         }
-        optionBurger.setOnMouseClicked(event -> {
-            optionPopup.show(optionRippler, JFXPopup.PopupVPosition.TOP, JFXPopup.PopupHPosition.RIGHT, -50.0, 10.0);
-        });
+        optionBurger.setOnMouseClicked(event -> optionPopup.show(optionRippler, JFXPopup.PopupVPosition.TOP, JFXPopup.PopupHPosition.RIGHT, -50.0, 10.0));
 
     }
 

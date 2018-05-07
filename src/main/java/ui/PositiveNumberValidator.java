@@ -3,7 +3,7 @@ package ui;
 import com.jfoenix.validation.base.ValidatorBase;
 import javafx.scene.control.TextInputControl;
 
-public class PositiveNumberValidator extends ValidatorBase {
+class PositiveNumberValidator extends ValidatorBase {
 
     public PositiveNumberValidator(String message) {
         super(message);
