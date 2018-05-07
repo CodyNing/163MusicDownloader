@@ -5,6 +5,7 @@
 songs/
 log/
 temp/
+*.ser
 
 # Maven
 target/
