@@ -21,6 +21,11 @@ To build 163Music, you will need:
 * [JDK 8+](http://www.oracle.com/technetwork/java/javase/downloads/index.html) -Java Development Kit (version 8 or up)
 * [maven](http://maven.apache.org/) - Version 3 recommended
 
+To build .jar executable
+```
+$ mvn clean jfx:jar
+```
+
 Please Note that, for JDK 9 or up, You must uses JFoenix v9.0.4 
 
 Change the jfoenix dependency in pox.xml to
