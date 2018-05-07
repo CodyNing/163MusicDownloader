@@ -1,6 +1,5 @@
 package ui;
 
-import util.Downloader;
 import com.jfoenix.controls.JFXAlert;
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXDialogLayout;
@@ -10,6 +9,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import util.Downloader;
 
 import java.awt.*;
 import java.io.IOException;
@@ -58,6 +58,21 @@ public class DownloadPopupController {
 
         Label promptLabel = new Label(promptMsg);
         JFXTextField textField = new JFXTextField();
+        textField.setValidators(new PositiveNumberValidator("id must be a number"));
+        textField.focusedProperty().addListener((observable, oldValue, newValue) -> {
+            // use regex to fetch song id from url if necessary
+            String id = textField.getText().trim();
+            if (!id.matches("^\\d*$")) {
+                String regex = tag + "\\?id=(\\d*)";
+                Pattern pattern = Pattern.compile(regex);
+                Matcher matcher = pattern.matcher(id);
+                if (matcher.find())
+                    id = matcher.group(1);
+            }
+            textField.setText(id);
+
+            textField.validate();
+        });
         textField.setPromptText(tag.substring(0, 1).toUpperCase() + tag.substring(1) + " ID");
         textField.setLabelFloat(true);
         VBox body = new VBox(promptLabel, textField);
@@ -68,22 +83,14 @@ public class DownloadPopupController {
         JFXButton acceptButton = new JFXButton("ACCEPT");
         acceptButton.getStyleClass().add("dialog-accept");
         acceptButton.setOnAction(event -> {
-            // use regex to fetch song id from url if necessary
-            String id = textField.getText().trim();
-            if (!id.matches("^\\d*$")) {
-                String regex = tag + "\\?id=(\\d*)";
-                Pattern pattern = Pattern.compile(regex);
-                Matcher matcher = pattern.matcher(id);
-                if (matcher.find())
-                    id = matcher.group(1);
+            if (textField.validate()) {
+                // Start a new Thread to download the song in background
+                String id = textField.getText();
+                alert.hideWithAnimation();
+
+                new Thread(new ReadIDTask(id, task)).start();
             }
-            // return if the id is not a number
-            if (!id.matches("^\\d*$")) {
-                Center.printToStatus(String.format("id is not a number, id: %s\n", id));
-                return;
-            }
-            // Start a new Thread to download the song in background
-            new Thread(new ReadIDTask(id, task)).start();
+
         });
 
         JFXButton closeButton = new JFXButton("CANCEL");
