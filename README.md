@@ -1,5 +1,7 @@
 # 163Music
 
+[![Build Status](https://ci.appveyor.com/api/projects/status/32r7s2skrgm9ubva?svg=true&retina=true)](https://ci.appveyor.com/project/CRonYii/163musicdownloader)
+
 A web spider music download application build on JavaFX.
 
 # Data Source
