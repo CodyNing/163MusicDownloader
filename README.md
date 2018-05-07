@@ -23,7 +23,7 @@ To build 163Music, you will need:
 
 Please Note that, for JDK 9 or up, You must uses JFoenix v9.0.4 
 
-Change pom.xml to
+Change the jfoenix dependency in pox.xml to
 ```xml
 <dependency>
     <groupId>com.jfoenix</groupId>
