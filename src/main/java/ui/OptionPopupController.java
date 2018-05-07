@@ -34,6 +34,7 @@ public class OptionPopupController implements Initializable {
     @FXML
     public void openSettings() {
         JFXAlert setting = new JFXAlert((Stage) Center.getRootWindow());
+        setting.setSize(700, 500);
         setting.initModality(Modality.APPLICATION_MODAL);
         setting.setOverlayClose(false);
 
@@ -107,8 +108,10 @@ public class OptionPopupController implements Initializable {
     }
 
     private void makeSettingInput(JFXTextField textField, String label, String promptText) {
+        textField.setFont(new Font(12.0));
+
         Label promptLabel = new Label(label);
-        promptLabel.setFont(new Font(10.0));
+        promptLabel.setFont(new Font(12.0));
         textField.setValidators(new PositiveNumberValidator("Must be a positive number"));
         textField.focusedProperty().addListener((observable, oldValue, newValue) -> textField.validate());
         textField.setPromptText(promptText);

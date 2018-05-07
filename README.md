@@ -36,7 +36,3 @@ Change pom.xml to
 
 To uses 163Music v0.2, download the jar executable
 * [163Music v0.2](https://github.com/CRonYii/163MusicDownloader/releases)
-
-If any error occur during runtime, please locate log files under the ./log folder
-
-
