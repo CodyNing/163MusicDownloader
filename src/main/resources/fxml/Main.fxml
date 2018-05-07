@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.jfoenix.controls.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.*?>
+<StackPane xmlns:fx="http://javafx.com/fxml/1" prefHeight="150.0" prefWidth="200.0"
+           xmlns="http://javafx.com/javafx/9.0.1" fx:controller="ui.MainController">
+    <children>
+        <VBox prefHeight="200.0" prefWidth="100.0" BorderPane.alignment="CENTER">
+            <children>
+                <JFXToolbar>
+                    <left>
+                        <JFXRippler fx:id="titleRippler" maskType="CIRCLE" style="-fx-ripple-color: WHITE;"
+                                    BorderPane.alignment="CENTER">
+                            <children>
+                                <JFXHamburger fx:id="titleBurger"/>
+                            </children>
+                        </JFXRippler>
+                    </left>
+                    <center>
+                        <Label text="163 Music" BorderPane.alignment="CENTER"/>
+                    </center>
+                    <right>
+                        <JFXRippler fx:id="optionRippler" maskType="CIRCLE" BorderPane.alignment="CENTER">
+                            <children>
+                                <JFXHamburger fx:id="optionBurger" styleClass="jfx-options-burger"/>
+                            </children>
+                        </JFXRippler>
+                    </right>
+                </JFXToolbar>
+                <JFXListView fx:id="listView" VBox.vgrow="ALWAYS"/>
+                <HBox prefHeight="0.0" prefWidth="248.0">
+                    <children>
+                        <Label fx:id="downloadStatus" text=" 0 / 0 downloading"/>
+                        <Separator orientation="VERTICAL" prefHeight="200.0">
+                            <padding>
+                                <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+                            </padding>
+                        </Separator>
+                        <Label fx:id="statusLabel" text="status"/>
+                    </children>
+                    <padding>
+                        <Insets left="5.0" right="5.0"/>
+                    </padding>
+                </HBox>
+            </children>
+        </VBox>
+    </children>
+</StackPane>
