@@ -17,6 +17,10 @@ public class Database implements Serializable {
     private final Map<String, Album> albumMap = new HashMap<>();
     private final Map<String, Playlist> playlistMap = new HashMap<>();
 
+    private int maxConcurrentDownload = 5;
+    private int failConnectionWaitTime = 15;
+    private int reconnectionTimes = 3;
+
     private Database() {
     }
 
@@ -32,6 +36,30 @@ public class Database implements Serializable {
             }
         }
         return new Database();
+    }
+
+    public int getMaxConcurrentDownload() {
+        return maxConcurrentDownload;
+    }
+
+    public void setMaxConcurrentDownload(int maxConcurrentDownload) {
+        this.maxConcurrentDownload = maxConcurrentDownload;
+    }
+
+    public int getFailConnectionWaitTime() {
+        return failConnectionWaitTime;
+    }
+
+    public void setFailConnectionWaitTime(int failConnectionWaitTime) {
+        this.failConnectionWaitTime = failConnectionWaitTime;
+    }
+
+    public int getReconnectionTimes() {
+        return reconnectionTimes;
+    }
+
+    public void setReconnectionTimes(int reconnectionTimes) {
+        this.reconnectionTimes = reconnectionTimes;
     }
 
     public static Database getInstance() {

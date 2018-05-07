@@ -31,9 +31,17 @@ public class MainController implements Initializable {
     private JFXHamburger titleBurger;
 
     @FXML
-    private JFXRippler rippler;
+    private JFXRippler titleRippler;
 
-    private JFXPopup popup;
+    @FXML
+    private JFXHamburger optionBurger;
+
+    @FXML
+    private JFXRippler optionRippler;
+
+    private JFXPopup downloadPopup;
+
+    private JFXPopup optionPopup;
 
     public MainController() {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Main.fxml"));
@@ -52,13 +60,23 @@ public class MainController implements Initializable {
         listView.setCellFactory(cell -> new DownloadCell());
 
         try {
-            popup = new JFXPopup(FXMLLoader.load(getClass().getResource("/fxml/ui/Popup.fxml")));
+            downloadPopup = new JFXPopup(FXMLLoader.load(getClass().getResource("/fxml/ui/DownloadPopup.fxml")));
         } catch (IOException ioExc) {
             ioExc.printStackTrace();
         }
         titleBurger.setOnMouseClicked(event -> {
-            popup.show(rippler, JFXPopup.PopupVPosition.TOP, JFXPopup.PopupHPosition.LEFT, 50.0, 10.0);
+            downloadPopup.show(titleRippler, JFXPopup.PopupVPosition.TOP, JFXPopup.PopupHPosition.LEFT, 50.0, 10.0);
         });
+
+        try {
+            optionPopup = new JFXPopup(FXMLLoader.load(getClass().getResource("/fxml/ui/OptionPopup.fxml")));
+        } catch (IOException ioExc) {
+            ioExc.printStackTrace();
+        }
+        optionBurger.setOnMouseClicked(event -> {
+            optionPopup.show(optionRippler, JFXPopup.PopupVPosition.TOP, JFXPopup.PopupHPosition.RIGHT, -50.0, 10.0);
+        });
+
     }
 
 }

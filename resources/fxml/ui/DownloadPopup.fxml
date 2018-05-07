@@ -6,7 +6,7 @@
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.layout.VBox?>
 <VBox xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/9.0.1"
-      minWidth="200" minHeight="100" fx:controller="ca.bcit.cst.rongyi.ui.PopupController">
+      minWidth="200" minHeight="100" fx:controller="ca.bcit.cst.rongyi.ui.DownloadPopupController">
     <children>
         <JFXButton text="Playlist" onAction="#downloadPlaylist" prefWidth="Infinity"></JFXButton>
         <JFXButton text="Single Song" onAction="#downloadSong" prefWidth="Infinity"></JFXButton>

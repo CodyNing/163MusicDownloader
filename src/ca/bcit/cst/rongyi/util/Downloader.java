@@ -40,7 +40,6 @@ public class Downloader {
         downloadList.addListener((ListChangeListener<Download>) c -> Center.updateListStatus());
     }
 
-    private int maxConcurrentDownload = 5;
     private int currentDownloading = 0;
 
     public static String makeStringValidForWindowsFile(String str) {
@@ -118,11 +117,7 @@ public class Downloader {
     }
 
     private boolean isAllowedToDownload() {
-        return currentDownloading < maxConcurrentDownload;
-    }
-
-    public void setMaxConcurrentDownload(int maxConcurrentDownload) {
-        this.maxConcurrentDownload = maxConcurrentDownload;
+        return currentDownloading < Database.getInstance().getMaxConcurrentDownload();
     }
 
     public ObservableList<Download> getDownloadList() {

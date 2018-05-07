@@ -1,5 +1,7 @@
 package ca.bcit.cst.rongyi.util;
 
+import ca.bcit.cst.rongyi.ui.Center;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
@@ -53,15 +55,17 @@ public class Song implements Serializable {
         try {
             this.downloadURL = Spider.getSongDownloadURL(this.id);
         } catch (IOException e) {
-            if (tried < 3) {
-                System.err.println("Failed to get Download URL, will try again in 15 second, song: " + getTitle());
+            Database data = Database.getInstance();
+            if (tried < data.getReconnectionTimes()) {
+                System.err.printf("Failed to get Download URL, will try again in %s second, song: %s\n", data.getFailConnectionWaitTime(), getTitle());
                 try {
-                    Thread.sleep(15000);
+                    Thread.sleep(data.getFailConnectionWaitTime() * 1000);
                 } catch (InterruptedException e1) {
                     e1.printStackTrace();
                 }
                 setDownloadURL(tried + 1);
             } else {
+                Center.printToStatus("Failed to get Download URL From ouo.us, give up, song: " + getTitle());
                 System.err.println("Failed to get Download URL From ouo.us, give up, song: " + getTitle());
             }
         }
