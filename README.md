@@ -24,13 +24,13 @@ To build 163Music, you will need:
 Please Note that, for JDK 9 or up, You must uses JFoenix v9.0.4 
 
 Change pom.xml to
-'''xml
+```xml
 <dependency>
     <groupId>com.jfoenix</groupId>
     <artifactId>jfoenix</artifactId>
     <version>9.0.4</version>
 </dependency>
-'''
+```
 
 # Release
 
