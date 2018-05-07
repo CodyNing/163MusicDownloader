@@ -6,7 +6,7 @@
 
     <groupId>ca.bcit.cst.rongyi</groupId>
     <artifactId>163Music</artifactId>
-    <version>0.2</version>
+    <version>v0.2</version>
 
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
