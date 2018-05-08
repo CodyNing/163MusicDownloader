@@ -1,13 +1,13 @@
 package ui;
 
-import util.Database;
-import util.Downloader;
 import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
+import util.Database;
+import util.Downloader;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -64,4 +64,5 @@ public class Center {
     public static void setRootScene(Scene rootScene) {
         Center.rootScene = rootScene;
     }
+
 }

@@ -1,27 +1,21 @@
 package ui;
 
-import com.jfoenix.validation.base.ValidatorBase;
-import javafx.scene.control.TextInputControl;
-
-class PositiveNumberValidator extends ValidatorBase {
+class PositiveNumberValidator extends ValidatorBaseAdvanced {
 
     public PositiveNumberValidator(String message) {
         super(message);
     }
 
     @Override
-    protected void eval() {
-        TextInputControl textField = (TextInputControl) this.srcControl.get();
-        String text = textField.getText();
-
+    boolean valid(String text) {
         try {
-            this.hasErrors.set(false);
             int val = Integer.parseInt(text);
             if (val <= 0)
                 throw new Exception();
         } catch (Exception e) {
-            this.hasErrors.set(true);
+            return false;
         }
+        return true;
     }
 
 }
