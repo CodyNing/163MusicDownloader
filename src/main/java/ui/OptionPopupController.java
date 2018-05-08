@@ -104,7 +104,8 @@ public class OptionPopupController implements Initializable {
         browseButton.setOnAction(event -> {
             directoryChooser.setTitle("Choose Download Folder");
             File dir = directoryChooser.showDialog(Center.getRootWindow());
-            downloadFolderField.setText(dir.getAbsolutePath());
+            if (dir != null)
+            	downloadFolderField.setText(dir.getAbsolutePath());
         });
         browseButton.setStyle("-fx-text-fill:WHITE;-fx-background-color:#5264AE;-fx-font-size:14px;");
         downloadFolderField.setPromptText("Download Folder");
