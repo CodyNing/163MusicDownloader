@@ -5,6 +5,7 @@
 songs/
 log/
 temp/
+bin/
 *.ser
 
 # Maven
@@ -22,6 +23,7 @@ buildNumber.properties
 !/.mvn/wrapper/maven-wrapper.jar
 
 # User-specific stuff
+.settings/
 *.iml
 .idea/
 .idea/**/workspace.xml

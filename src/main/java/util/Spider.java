@@ -144,14 +144,14 @@ public class Spider {
 
         album = new Album(artist, eleAlbumTitle.text(), albumID, songList);
         Album finalAlbum = album;
-        eleSongList.forEach(song -> {
+        int trackNo = 0;
+        for(Element song : eleSongList) {
             Song temp = new Song(song.attr("href").substring(9), song.text());
+            temp.setTrackNo(++trackNo + "");
             temp.setArtist(artist);
             temp.setAlbum(finalAlbum);
             songList.add(temp);
-        });
-
-
+        }
         return album;
     }
 

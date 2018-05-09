@@ -12,13 +12,15 @@ public class Song implements Serializable {
 
     private final String id;
     private final String title;
+    private String trackNo;
     private Artist artist;
     private Album album;
     private String downloadURL;
 
-    public Song(String id, String title, Artist artist, Album album) {
+    public Song(String id, String title, String trackNo, Artist artist, Album album) {
         this.id = id;
         this.title = Downloader.makeStringValidForWindowsFile(title);
+        this.trackNo = trackNo;
         this.artist = artist;
         this.album = album;
 
@@ -26,9 +28,13 @@ public class Song implements Serializable {
             album.addSong(this);
         Database.addSong(this);
     }
+    
+    public Song(String id, String title, Artist artist, Album album) {
+        this(id, title, null, artist, album);
+    }
 
     public Song(String id, String title) {
-        this(id, title, null, null);
+        this(id, title, null, null, null);
     }
 
     /**
@@ -87,6 +93,14 @@ public class Song implements Serializable {
 
     public String getTitle() {
         return title;
+    }
+    
+    public String getTrackNo() {
+        return trackNo;
+    }
+
+    public void setTrackNo(String trackNo) {
+        this.trackNo = trackNo;
     }
 
     public Artist getArtist() {
