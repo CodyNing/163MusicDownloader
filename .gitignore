@@ -24,8 +24,6 @@ buildNumber.properties
 
 # User-specific stuff
 .settings/
-.project
-.classpath
 *.iml
 .idea/
 .idea/**/workspace.xml
@@ -75,3 +73,9 @@ fabric.properties
 
 # Editor-based Rest Client
 .idea/httpRequests
+
+# Eclipse Core      
+.project
+
+# JDT-specific (Eclipse Java Development Tools)     
+.classpath
