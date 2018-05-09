@@ -24,6 +24,8 @@ buildNumber.properties
 
 # User-specific stuff
 .settings/
+.project
+.classpath
 *.iml
 .idea/
 .idea/**/workspace.xml
