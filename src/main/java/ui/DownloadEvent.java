@@ -1,10 +1,15 @@
 package ui;
 
+import util.Album;
 import util.ElementNotFoundException;
 import util.Playlist;
+import util.Searcher;
+import util.Song;
 import util.Spider;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 public interface DownloadEvent {
 
@@ -62,6 +67,74 @@ public interface DownloadEvent {
         public void run(String id) {
             try {
                 Spider.getArtistByID(id).downloadAllAlbum();
+            } catch (IOException e) {
+                Center.printToStatus(String.format("Unable to download artist's songs, id: %s\n", id));
+                System.err.printf("Unable to download artist's songs, id: %s\n", id);
+            } catch (ElementNotFoundException e) {
+                Center.printToStatus(String.format("Unable to get artist's songs, id: %s\n", id));
+                e.printStackTrace();
+            }
+        }
+    }
+    
+    class PlaylistSearchEvent implements DownloadEvent {
+
+        @Override
+        public void run(String id) {
+            try {
+                Playlist playlist = Spider.getPlaylistByID(id);
+                Searcher.setSearchlist(playlist.getSongList());
+            } catch (IOException e) {
+                Center.printToStatus(String.format("Unable to get playlist, id: %s\n", id));
+                System.err.printf("Unable to get playlist, id: %s\n", id);
+            } catch (ElementNotFoundException e) {
+                Center.printToStatus(String.format("Unable to get playlist, id: %s\n", id));
+                e.printStackTrace();
+            }
+        }
+    }
+    
+    class SongSearchEvent implements DownloadEvent {
+        @Override
+        public void run(String id) {
+            try {
+                Set<Song> songlist = new HashSet<>();
+                songlist.add(Spider.getSongByID(id));
+                Searcher.setSearchlist(songlist);
+            } catch (IOException e) {
+                Center.printToStatus(String.format("Unable to download song, id: %s\n", id));
+                System.err.printf("Unable to download song, id: %s\n", id);
+            } catch (ElementNotFoundException e) {
+                Center.printToStatus(String.format("Unable to get song, id: %s\n", id));
+                e.printStackTrace();
+            }
+        }
+    }
+
+    class AlbumSearchEvent implements DownloadEvent {
+        @Override
+        public void run(String id) {
+            try {
+                Searcher.setSearchlist(Spider.getAlbumByID(id).getSongList());
+            } catch (IOException e) {
+                Center.printToStatus(String.format("Unable to download album, id: %s\n", id));
+                System.err.printf("Unable to download album, id: %s\n", id);
+            } catch (ElementNotFoundException e) {
+                Center.printToStatus(String.format("Unable to get album, id: %s\n", id));
+                e.printStackTrace();
+            }
+        }
+    }
+
+    class ArtistSearchEvent implements DownloadEvent {
+        @Override
+        public void run(String id) {
+            try {
+                Set<Album> albumlist = Spider.getArtistByID(id).getAlbumList();
+                Set<Song> songlist = new HashSet<>();
+                for(Album a : albumlist)
+                    songlist.addAll(a.getSongList());
+                Searcher.setSearchlist(songlist);
             } catch (IOException e) {
                 Center.printToStatus(String.format("Unable to download artist's songs, id: %s\n", id));
                 System.err.printf("Unable to download artist's songs, id: %s\n", id);

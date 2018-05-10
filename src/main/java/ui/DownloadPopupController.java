@@ -58,23 +58,7 @@ public class DownloadPopupController {
 
         Label promptLabel = new Label(promptMsg);
         JFXTextField textField = new JFXTextField();
-        textField.setValidators(new PositiveNumberValidator("id must be a number"));
-        textField.focusedProperty().addListener((observable, oldValue, newValue) -> {
-            // use regex to fetch song id from url if necessary
-            String id = textField.getText().trim();
-            if (!id.matches("^\\d*$")) {
-                String regex = tag + "\\?id=(\\d*)";
-                Pattern pattern = Pattern.compile(regex);
-                Matcher matcher = pattern.matcher(id);
-                if (matcher.find())
-                    id = matcher.group(1);
-            }
-            textField.setText(id);
-
-            textField.validate();
-        });
-        textField.setPromptText(tag.substring(0, 1).toUpperCase() + tag.substring(1) + " ID");
-        textField.setLabelFloat(true);
+        setUpidValidatedTextField(tag, textField);
         VBox body = new VBox(promptLabel, textField);
         body.setSpacing(20.0);
 
@@ -100,6 +84,26 @@ public class DownloadPopupController {
 
         alert.setContent(layout);
         alert.show();
+    }
+
+    public static void setUpidValidatedTextField(String tag, JFXTextField textField) {
+        textField.setValidators(new PositiveNumberValidator("id must be a number"));
+        textField.focusedProperty().addListener((observable, oldValue, newValue) -> {
+            // use regex to fetch song id from url if necessary
+            String id = textField.getText().trim();
+            if (!id.matches("^\\d*$")) {
+                String regex = tag + "\\?id=(\\d*)";
+                Pattern pattern = Pattern.compile(regex);
+                Matcher matcher = pattern.matcher(id);
+                if (matcher.find())
+                    id = matcher.group(1);
+            }
+            textField.setText(id);
+
+            textField.validate();
+        });
+        textField.setPromptText(tag.substring(0, 1).toUpperCase() + tag.substring(1) + " ID");
+        textField.setLabelFloat(true);
     }
 
 }
