@@ -6,6 +6,7 @@
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.layout.*?>
+<?import com.jfoenix.controls.JFXProgressBar?>
 <StackPane xmlns:fx="http://javafx.com/fxml/1" prefHeight="150.0" prefWidth="200.0"
            xmlns="http://javafx.com/javafx/9.0.1" fx:controller="ui.MainController">
     <VBox prefHeight="200.0" prefWidth="100.0" BorderPane.alignment="CENTER">
@@ -41,11 +42,14 @@
 	  					<JFXDialogLayout>
 	  						<body>
 	  							<VBox alignment="CENTER">
-	  								<VBox alignment="CENTER" spacing="10">
+	  								<VBox alignment="CENTER" spacing="20">
 					    				<Label text="Enter playlist/artist/album/song id to search"/>
-					    				<JFXTextField fx:id="searchBox"/>
+					    				<HBox alignment="CENTER" spacing="10">
+					    					<JFXTextField fx:id="searchBox"/>
+					    					<JFXButton onAction="#search" text="Search" styleClass="jfx-dialog-accept"></JFXButton>
+				    					</HBox>
+					    				<JFXProgressBar fx:id="searchProgress" maxWidth="250" prefHeight="10" visible="false"/>
 				    				</VBox>
-		    						<JFXButton onAction="#search" text="Search" styleClass="jfx-dialog-accept" prefWidth="Infinity"></JFXButton>
 		    						<HBox fx:id="selectType" alignment="CENTER"></HBox>
 			    				</VBox>	
 		    				</body>

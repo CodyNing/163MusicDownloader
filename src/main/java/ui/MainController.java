@@ -3,6 +3,7 @@ package ui;
 import com.jfoenix.controls.JFXHamburger;
 import com.jfoenix.controls.JFXListView;
 import com.jfoenix.controls.JFXPopup;
+import com.jfoenix.controls.JFXProgressBar;
 import com.jfoenix.controls.JFXRadioButton;
 import com.jfoenix.controls.JFXRippler;
 import com.jfoenix.controls.JFXTextField;
@@ -37,6 +38,9 @@ public class MainController implements Initializable {
     
     @FXML
     private JFXListView<Song> searchView;
+    
+    @FXML
+    private JFXProgressBar searchProgress;
     
     @FXML
     private HBox selectType;
@@ -170,11 +174,14 @@ public class MainController implements Initializable {
     }
     
     public void search() {
-        if (selectToggle.selectedToggleProperty() != null && searchBox.validate()) {
+        if (selectToggle.getSelectedToggle() != null && searchBox.validate()) {
             // Start a new Thread to search in background
             String id = searchBox.getText();
-
-            new Thread(new ReadIDTask(id, ((ToggleData) selectToggle.getSelectedToggle().getUserData()).getEvent())).start();
+            Center.printToStatus("Searching in process...");
+            DownloadEvent event = ((ToggleData) selectToggle.getSelectedToggle().getUserData()).getEvent();
+            ReadIDTask searchTask = new ReadIDTask(id, event);
+            searchProgress.visibleProperty().bind(searchTask.runningProperty());
+            new Thread(searchTask).start();
         }
     }
     
