@@ -1,12 +1,12 @@
 package util;
 
-import ui.Center;
 import com.mpatric.mp3agic.*;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
+import ui.Center;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -20,8 +20,7 @@ import java.util.LinkedList;
 
 public class Downloader {
 
-    public static final File SONG_DIR = new File("./songs/");
-    public static final File TEMP_DIR = new File("./temp/");
+    public static final File TEMP_DIR = new File("temp/");
 
     private static final Downloader downloader = new Downloader();
 
@@ -32,8 +31,8 @@ public class Downloader {
     private final ObservableList<Download> downloadList;
 
     private Downloader() {
-        if (!SONG_DIR.exists())
-            SONG_DIR.mkdir();
+        if (!Database.getSongDir().exists())
+            Database.getSongDir().mkdir();
         if (!TEMP_DIR.exists())
             TEMP_DIR.mkdir();
         downloadList = FXCollections.synchronizedObservableList(FXCollections.observableList(new LinkedList<Download>()));
@@ -68,7 +67,9 @@ public class Downloader {
 
     private synchronized void startHeadDownload() {
         if (isAllowedToDownload() && downloadList.size() > currentDownloading) {
-            new Thread(downloadList.get(currentDownloading)).start();
+            Thread thread = new Thread(downloadList.get(currentDownloading));
+            thread.setDaemon(true);
+            thread.start();
             currentDownloading += 1;
             Center.updateListStatus();
         }
@@ -111,7 +112,7 @@ public class Downloader {
         id3v2Tag.setTitle(song.getTitle());
         id3v2Tag.setAlbum(song.getAlbum().getName());
         id3v2Tag.setTrack(song.getTrackNo());
-        String newFileName = SONG_DIR + "\\" + id3v2Tag.getArtist() + " - " + id3v2Tag.getTitle() + ".mp3";
+        String newFileName = Database.getSongDir() + "\\" + id3v2Tag.getArtist() + " - " + id3v2Tag.getTitle() + ".mp3";
         mp3file.save(newFileName);
         fp.delete();
         Center.printToStatus(id3v2Tag.getArtist() + " - " + id3v2Tag.getTitle() + " download Complete");
@@ -127,6 +128,10 @@ public class Downloader {
 
     public int getCurrentDownloading() {
         return currentDownloading;
+    }
+
+    public boolean hasTask() {
+        return downloadList.size() != 0;
     }
 
     public class Download extends Task<Void> {

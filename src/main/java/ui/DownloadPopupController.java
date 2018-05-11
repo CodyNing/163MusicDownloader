@@ -9,6 +9,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import util.Database;
 import util.Downloader;
 
 import java.awt.*;
@@ -42,7 +43,7 @@ public class DownloadPopupController {
     public void openSongsFolder() {
         try {
             Desktop desktop = Desktop.getDesktop();
-            desktop.open(Downloader.SONG_DIR);
+            desktop.open(Database.getSongDir());
         } catch (IOException e) {
             e.printStackTrace();
         }

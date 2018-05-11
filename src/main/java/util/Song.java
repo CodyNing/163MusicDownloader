@@ -136,6 +136,6 @@ public class Song implements Serializable {
     }
 
     public boolean exists() {
-        return new File(Downloader.SONG_DIR + "\\" + getArtist().getName() + " - " + getTitle() + ".mp3").exists();
+        return new File(Database.getSongDir() + "\\" + getArtist().getName() + " - " + getTitle() + ".mp3").exists();
     }
 }

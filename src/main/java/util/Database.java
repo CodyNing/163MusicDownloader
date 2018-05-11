@@ -8,6 +8,8 @@ import java.util.Map;
 
 public class Database implements Serializable {
 
+    private static File SONG_DIR = new File("songs/");
+
     public static final File OUTPUT = new File("./database.ser");
     private static final long serialVersionUID = 500L;
 
@@ -98,4 +100,11 @@ public class Database implements Serializable {
         getInstance().playlistMap.putIfAbsent(playlist.getId(), playlist);
     }
 
+    public static File getSongDir() {
+        return SONG_DIR;
+    }
+
+    public static void setSongDir(File songDir) {
+        // TODO set the Song Dir when no download
+    }
 }
