@@ -151,7 +151,7 @@ public class OptionPopupController implements Initializable {
     }
 
     private void makeSettingToggle(JFXToggleButton toggleButton, String promptText) {
-
+        // TODO
     }
 
 }

@@ -1,40 +1,40 @@
 package util;
 
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import ui.Center;
 
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 public class Searcher {
 
-    private static ObservableList<Song> searchlist = FXCollections.synchronizedObservableList(FXCollections.observableList(new LinkedList<Song>()));
+    private static ObservableList<Song> searchList = FXCollections.synchronizedObservableList(FXCollections.observableList(new LinkedList<Song>()));
     
     public static final ExecutorService searchThread = Executors.newSingleThreadExecutor();
-    
-    public static ObservableList<Song> getSearchlist() {
-        return searchlist;
+
+    public static ObservableList<Song> getSearchList() {
+        return searchList;
     }
 
-    public static ExecutorService getSearchthread() {
-        return searchThread;
-    }
-
-    public static void setSearchlist(ObservableList<Song> searchlist) {
-        Searcher.searchlist = searchlist;
-    }
-    
-    public static void setSearchlist(Collection<Song> searchlist) {
+    public static void setSearchList(Collection<Song> searchList) {
         Platform.runLater(() -> {
-            Searcher.searchlist.clear();
-            Searcher.searchlist.addAll(searchlist);
+            Searcher.searchList.clear();
+            Searcher.searchList.addAll(searchList);
             Center.printToStatus("Searching Success");
         });
     }
-    
-    
+
+    public static ExecutorService getSearchThread() {
+        return searchThread;
+    }
+
+    public static void setSearchList(ObservableList<Song> searchList) {
+        Searcher.searchList = searchList;
+    }
+
+
 }

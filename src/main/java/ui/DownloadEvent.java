@@ -1,11 +1,6 @@
 package ui;
 
-import util.Album;
-import util.ElementNotFoundException;
-import util.Playlist;
-import util.Searcher;
-import util.Song;
-import util.Spider;
+import util.*;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -95,7 +90,7 @@ public interface DownloadEvent {
         public boolean run(String id) {
             try {
                 Playlist playlist = Spider.getPlaylistByID(id);
-                Searcher.setSearchlist(playlist.getSongList());
+                Searcher.setSearchList(playlist.getSongList());
             } catch (IOException e) {
                 Center.printToStatus(String.format("Unable to get playlist, id: %s\n", id));
                 System.err.printf("Unable to get playlist, id: %s\n", id);
@@ -115,7 +110,7 @@ public interface DownloadEvent {
             try {
                 Set<Song> songlist = new HashSet<>();
                 songlist.add(Spider.getSongByID(id));
-                Searcher.setSearchlist(songlist);
+                Searcher.setSearchList(songlist);
             } catch (IOException e) {
                 Center.printToStatus(String.format("Unable to download song, id: %s\n", id));
                 System.err.printf("Unable to download song, id: %s\n", id);
@@ -133,7 +128,7 @@ public interface DownloadEvent {
         @Override
         public boolean run(String id) {
             try {
-                Searcher.setSearchlist(Spider.getAlbumByID(id).getSongList());
+                Searcher.setSearchList(Spider.getAlbumByID(id).getSongList());
             } catch (IOException e) {
                 Center.printToStatus(String.format("Unable to download album, id: %s\n", id));
                 System.err.printf("Unable to download album, id: %s\n", id);
@@ -155,7 +150,7 @@ public interface DownloadEvent {
                 Set<Song> songlist = new HashSet<>();
                 for(Album a : albumlist)
                     songlist.addAll(a.getSongList());
-                Searcher.setSearchlist(songlist);
+                Searcher.setSearchList(songlist);
             } catch (IOException e) {
                 Center.printToStatus(String.format("Unable to download artist's songs, id: %s\n", id));
                 System.err.printf("Unable to download artist's songs, id: %s\n", id);

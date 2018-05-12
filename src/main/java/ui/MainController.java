@@ -1,13 +1,6 @@
 package ui;
 
-import com.jfoenix.controls.JFXHamburger;
-import com.jfoenix.controls.JFXListView;
-import com.jfoenix.controls.JFXPopup;
-import com.jfoenix.controls.JFXProgressBar;
-import com.jfoenix.controls.JFXRadioButton;
-import com.jfoenix.controls.JFXRippler;
-import com.jfoenix.controls.JFXTextField;
-
+import com.jfoenix.controls.*;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -24,7 +17,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-
+// TODO Cody's added UI are too ugly, needs improvement (try to implement Google Material Design
 public class MainController implements Initializable {
 
     @FXML
@@ -81,7 +74,7 @@ public class MainController implements Initializable {
         
         listView.setItems(Downloader.getInstance().getDownloadList());
         listView.setCellFactory(cell -> new DownloadCell());
-        searchView.setItems(Searcher.getSearchlist());
+        searchView.setItems(Searcher.getSearchList());
         searchView.setCellFactory(ceeeeelll -> new SearchCell());
         
         setUpRdToggle();
@@ -102,21 +95,17 @@ public class MainController implements Initializable {
 
     }
 
-    interface ToggleData{
-        DownloadEvent getEvent();
-    }
-    
     private void setUpRdToggle() {
         JFXRadioButton playlistRd = new JFXRadioButton("Playlist");
         playlistRd.setPadding(new Insets(10));
         playlistRd.setToggleGroup(selectToggle);
         playlistRd.setUserData(new ToggleData() {
-            
+
             @Override
             public DownloadEvent getEvent(){
                 return new DownloadEvent.PlaylistSearchEvent();
             }
-            
+
             @Override
             public String toString() {
                 return "playlist";
@@ -126,12 +115,12 @@ public class MainController implements Initializable {
         artistRd.setPadding(new Insets(10));
         artistRd.setToggleGroup(selectToggle);
         artistRd.setUserData(new ToggleData() {
-            
+
             @Override
             public DownloadEvent getEvent(){
                 return new DownloadEvent.ArtistSearchEvent();
             }
-            
+
             @Override
             public String toString() {
                 return "artist";
@@ -141,12 +130,12 @@ public class MainController implements Initializable {
         albumRd.setPadding(new Insets(10));
         albumRd.setToggleGroup(selectToggle);
         albumRd.setUserData(new ToggleData() {
-            
+
             @Override
             public DownloadEvent getEvent(){
                 return new DownloadEvent.AlbumSearchEvent();
             }
-            
+
             @Override
             public String toString() {
                 return "album";
@@ -156,12 +145,12 @@ public class MainController implements Initializable {
         songRd.setPadding(new Insets(10));
         songRd.setToggleGroup(selectToggle);
         songRd.setUserData(new ToggleData() {
-            
+
             @Override
             public DownloadEvent getEvent(){
                 return new DownloadEvent.SongSearchEvent();
             }
-            
+
             @Override
             public String toString() {
                 return "song";
@@ -171,6 +160,13 @@ public class MainController implements Initializable {
         selectToggle.selectedToggleProperty().addListener(
                 event -> DownloadPopupController.setUpidValidatedTextField(
                         selectToggle.getSelectedToggle().getUserData().toString(), searchBox));
+
+        selectToggle.selectToggle(playlistRd);
+    }
+
+    // TODO make a separate file for this interface, do not put all the search event in the Download Event class. Instead, create a new class for search event
+    interface ToggleData {
+        DownloadEvent getEvent();
     }
     
     public void search() {
