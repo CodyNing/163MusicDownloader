@@ -9,7 +9,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import util.Downloader;
+import util.Database;
 
 import java.awt.*;
 import java.io.IOException;
@@ -42,7 +42,7 @@ public class DownloadPopupController {
     public void openSongsFolder() {
         try {
             Desktop desktop = Desktop.getDesktop();
-            desktop.open(Downloader.SONG_DIR);
+            desktop.open(Database.getSongDir());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -88,7 +88,10 @@ public class DownloadPopupController {
                 String id = textField.getText();
                 alert.hideWithAnimation();
 
-                new Thread(new ReadIDTask(id, task)).start();
+                Center.printToStatus("Fetching Song information in background...");
+                Thread thread = new Thread(new ReadIDTask(id, task));
+                thread.setDaemon(true);
+                thread.start();
             }
 
         });
