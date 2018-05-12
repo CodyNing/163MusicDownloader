@@ -49,6 +49,10 @@ public class Album implements Serializable {
     public Artist getArtist() {
         return artist;
     }
+    
+    public Set<Song> getSongList() {
+        return songList;
+    }
 
     @Override
     public String toString() {

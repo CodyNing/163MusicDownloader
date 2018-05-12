@@ -10,6 +10,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import util.Database;
+import util.Downloader;
 
 import java.awt.*;
 import java.io.IOException;
@@ -58,6 +59,35 @@ public class DownloadPopupController {
 
         Label promptLabel = new Label(promptMsg);
         JFXTextField textField = new JFXTextField();
+        setUpidValidatedTextField(tag, textField);
+        VBox body = new VBox(promptLabel, textField);
+        body.setSpacing(20.0);
+
+        layout.setBody(body);
+
+        JFXButton acceptButton = new JFXButton("ACCEPT");
+        acceptButton.getStyleClass().add("dialog-accept");
+        acceptButton.setOnAction(event -> {
+            if (textField.validate()) {
+                // Start a new Thread to download the song in background
+                String id = textField.getText();
+                alert.hideWithAnimation();
+
+                new Thread(new ReadIDTask(id, task)).start();
+            }
+
+        });
+
+        JFXButton closeButton = new JFXButton("CANCEL");
+        closeButton.setOnAction(event -> alert.hideWithAnimation());
+
+        layout.setActions(acceptButton, closeButton);
+
+        alert.setContent(layout);
+        alert.show();
+    }
+
+    public static void setUpidValidatedTextField(String tag, JFXTextField textField) {
         textField.setValidators(new PositiveNumberValidator("id must be a number"));
         textField.focusedProperty().addListener((observable, oldValue, newValue) -> {
             // use regex to fetch song id from url if necessary
@@ -75,34 +105,6 @@ public class DownloadPopupController {
         });
         textField.setPromptText(tag.substring(0, 1).toUpperCase() + tag.substring(1) + " ID");
         textField.setLabelFloat(true);
-        VBox body = new VBox(promptLabel, textField);
-        body.setSpacing(20.0);
-
-        layout.setBody(body);
-
-        JFXButton acceptButton = new JFXButton("ACCEPT");
-        acceptButton.getStyleClass().add("dialog-accept");
-        acceptButton.setOnAction(event -> {
-            if (textField.validate()) {
-                // Start a new Thread to download the song in background
-                String id = textField.getText();
-                alert.hideWithAnimation();
-
-                Center.printToStatus("Fetching Song information in background...");
-                Thread thread = new Thread(new ReadIDTask(id, task));
-                thread.setDaemon(true);
-                thread.start();
-            }
-
-        });
-
-        JFXButton closeButton = new JFXButton("CANCEL");
-        closeButton.setOnAction(event -> alert.hideWithAnimation());
-
-        layout.setActions(acceptButton, closeButton);
-
-        alert.setContent(layout);
-        alert.show();
     }
 
 }

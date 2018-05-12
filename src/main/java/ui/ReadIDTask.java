@@ -14,7 +14,11 @@ class ReadIDTask extends Task<Void> {
 
     @Override
     protected Void call() {
-        this.event.run(id);
+        if(this.event.run(id)) {
+            succeeded();
+        } else {
+            failed();
+        }
         return null;
     }
 }

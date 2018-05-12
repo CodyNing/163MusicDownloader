@@ -95,7 +95,6 @@ public class Downloader {
     public void downloadSong(Collection<Song> songCollection) {
         for (Song song : songCollection) {
             song.download();
-            System.out.println(song);
         }
     }
 
@@ -112,6 +111,7 @@ public class Downloader {
         id3v2Tag.setArtist(song.getArtist().getName());
         id3v2Tag.setTitle(song.getTitle());
         id3v2Tag.setAlbum(song.getAlbum().getName());
+        id3v2Tag.setTrack(song.getTrackNo());
         String newFileName = Database.getSongDir() + "\\" + id3v2Tag.getArtist() + " - " + id3v2Tag.getTitle() + ".mp3";
         mp3file.save(newFileName);
         fp.delete();
