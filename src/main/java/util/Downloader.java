@@ -84,10 +84,10 @@ public class Downloader {
     public void downloadSong(Song song, File dir) {
         song.setArtistAndAlbum();
         if (song.exists()) {
-            Center.printToStatus("Song: " + song.getTitle() + ", already downloaded");
+            Center.printToStatus("Song: " + song.getTitleProperty() + ", already downloaded");
             return;
         }
-        File file = new File(dir, song.getArtist().getName() + " - " + song.getTitle() + "_temp.mp3");
+        File file = new File(dir, song.getArtist().getName() + " - " + song.getTitleProperty() + "_temp.mp3");
         Download download = new Download(file, song);
         addDownload(download);
     }
@@ -95,7 +95,6 @@ public class Downloader {
     public void downloadSong(Collection<Song> songCollection) {
         for (Song song : songCollection) {
             song.download();
-            System.out.println(song);
         }
     }
 
@@ -110,8 +109,9 @@ public class Downloader {
             mp3file.setId3v2Tag(id3v2Tag);
         }
         id3v2Tag.setArtist(song.getArtist().getName());
-        id3v2Tag.setTitle(song.getTitle());
+        id3v2Tag.setTitle(song.getTitleProperty());
         id3v2Tag.setAlbum(song.getAlbum().getName());
+        id3v2Tag.setTrack(song.getTrackNo());
         String newFileName = Database.getSongDir() + "\\" + id3v2Tag.getArtist() + " - " + id3v2Tag.getTitle() + ".mp3";
         mp3file.save(newFileName);
         fp.delete();
@@ -159,7 +159,7 @@ public class Downloader {
         private void download() throws MalformedURLException {
             song.setDownloadURL();
             if (song.getDownloadURL() == null) {
-                Center.printToStatus("Unable to get URL for song " + song.getTitle() + ", append task at the end of download list.");
+                Center.printToStatus("Unable to get URL for song " + song.getTitleProperty() + ", append task at the end of download list.");
                 addDownload(new Download(outputFile, song));
                 return;
             }
@@ -185,7 +185,11 @@ public class Downloader {
 
         @Override
         public String toString() {
-            return song.getArtist().getName() + " - " + song.getTitle() + (this.isRunning() ? " - Downloading" : " - Pending");
+            return song.getArtist().getName() + " - " + song.getTitleProperty() + " - " + getStatus();
+        }
+
+        public String getStatus() {
+            return (this.isRunning() ? "Downloading" : "Pending");
         }
 
         @Override
@@ -207,7 +211,11 @@ public class Downloader {
                     outputFile.delete();
             }
             this.cancel();
-            Center.printToStatus("Cancelled download song: " + song.getTitle());
+            Center.printToStatus("Cancelled download song: " + song.getTitleProperty());
+        }
+
+        public Song getSong() {
+            return song;
         }
     }
 

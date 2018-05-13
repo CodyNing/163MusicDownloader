@@ -13,29 +13,27 @@ import util.Database;
 
 import java.awt.*;
 import java.io.IOException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class DownloadPopupController {
 
     @FXML
     public void downloadPlaylist() {
-        promptDialog(new DownloadEvent.PlaylistDownloadEvent(), "playlist", "All songs in the playlist will be downloaded");
+        promptDialog(new RunnableEvent.PlaylistDownloadEvent(), "playlist", "All songs in the playlist will be downloaded");
     }
 
     @FXML
     public void downloadSong() {
-        promptDialog(new DownloadEvent.SongDownloadEvent(), "song", "The Song will be downloaded");
+        promptDialog(new RunnableEvent.SongDownloadEvent(), "song", "The Song will be downloaded");
     }
 
     @FXML
     public void downloadAlbum() {
-        promptDialog(new DownloadEvent.AlbumDownloadEvent(), "album", "All songs in the album will be downloaded");
+        promptDialog(new RunnableEvent.AlbumDownloadEvent(), "album", "All songs in the album will be downloaded");
     }
 
     @FXML
     public void downloadArtist() {
-        promptDialog(new DownloadEvent.ArtistDownloadEvent(), "artist", "All songs of artist will be downloaded");
+        promptDialog(new RunnableEvent.ArtistDownloadEvent(), "artist", "All songs of artist will be downloaded");
     }
 
     @FXML
@@ -48,7 +46,7 @@ public class DownloadPopupController {
         }
     }
 
-    private void promptDialog(DownloadEvent task, String tag, String promptMsg) {
+    private void promptDialog(RunnableEvent task, String tag, String promptMsg) {
         JFXAlert alert = new JFXAlert((Stage) Center.getRootWindow());
         alert.initModality(Modality.APPLICATION_MODAL);
         alert.setOverlayClose(false);
@@ -58,23 +56,7 @@ public class DownloadPopupController {
 
         Label promptLabel = new Label(promptMsg);
         JFXTextField textField = new JFXTextField();
-        textField.setValidators(new PositiveNumberValidator("id must be a number"));
-        textField.focusedProperty().addListener((observable, oldValue, newValue) -> {
-            // use regex to fetch song id from url if necessary
-            String id = textField.getText().trim();
-            if (!id.matches("^\\d*$")) {
-                String regex = tag + "\\?id=(\\d*)";
-                Pattern pattern = Pattern.compile(regex);
-                Matcher matcher = pattern.matcher(id);
-                if (matcher.find())
-                    id = matcher.group(1);
-            }
-            textField.setText(id);
-
-            textField.validate();
-        });
-        textField.setPromptText(tag.substring(0, 1).toUpperCase() + tag.substring(1) + " ID");
-        textField.setLabelFloat(true);
+        Center.setUpIdValidationTextField(tag, textField);
         VBox body = new VBox(promptLabel, textField);
         body.setSpacing(20.0);
 
@@ -88,12 +70,10 @@ public class DownloadPopupController {
                 String id = textField.getText();
                 alert.hideWithAnimation();
 
-                Center.printToStatus("Fetching Song information in background...");
                 Thread thread = new Thread(new ReadIDTask(id, task));
                 thread.setDaemon(true);
                 thread.start();
             }
-
         });
 
         JFXButton closeButton = new JFXButton("CANCEL");

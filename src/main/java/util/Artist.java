@@ -14,6 +14,10 @@ public class Artist implements Serializable {
     private final String id;
     private final Set<Album> albumList;
 
+    public Artist(String name) {
+        this(name, null, new HashSet<>());
+    }
+    
     public Artist(String name, String id) {
         this(name, id, new HashSet<>());
     }

@@ -105,6 +105,6 @@ public class Database implements Serializable {
     }
 
     public static void setSongDir(File songDir) {
-        // TODO set the Song Dir when no download
+        // TODO set the Song Dir when no song is being download
     }
 }
