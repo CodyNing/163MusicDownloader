@@ -185,7 +185,11 @@ public class Downloader {
 
         @Override
         public String toString() {
-            return song.getArtist().getName() + " - " + song.getTitle() + (this.isRunning() ? " - Downloading" : " - Pending");
+            return song.getArtist().getName() + " - " + song.getTitle() + " - " + getStatus();
+        }
+
+        public String getStatus() {
+            return (this.isRunning() ? "Downloading" : "Pending");
         }
 
         @Override
@@ -208,6 +212,10 @@ public class Downloader {
             }
             this.cancel();
             Center.printToStatus("Cancelled download song: " + song.getTitle());
+        }
+
+        public Song getSong() {
+            return song;
         }
     }
 

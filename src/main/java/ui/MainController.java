@@ -56,7 +56,7 @@ public class MainController implements Initializable {
     private JFXPopup downloadPopup;
 
     private JFXPopup optionPopup;
-    
+
     private final ToggleGroup selectToggle = new ToggleGroup();
 
     public MainController() {
@@ -75,7 +75,7 @@ public class MainController implements Initializable {
         listView.setItems(Downloader.getInstance().getDownloadList());
         listView.setCellFactory(cell -> new DownloadCell());
         searchView.setItems(Searcher.getSearchList());
-        searchView.setCellFactory(ceeeeelll -> new SearchCell());
+        searchView.setCellFactory(cell -> new SearchCell());
         
         setUpRdToggle();
         
@@ -96,77 +96,24 @@ public class MainController implements Initializable {
     }
 
     private void setUpRdToggle() {
-        JFXRadioButton playlistRd = new JFXRadioButton("Playlist");
-        playlistRd.setPadding(new Insets(10));
-        playlistRd.setToggleGroup(selectToggle);
-        playlistRd.setUserData(new ToggleData() {
+        setUpRadioButton(new RunnableEvent.PlaylistSearchEvent(), "playlist");
+        setUpRadioButton(new RunnableEvent.ArtistSearchEvent(), "artist");
+        setUpRadioButton(new RunnableEvent.AlbumSearchEvent(), "album");
+        setUpRadioButton(new RunnableEvent.SongSearchEvent(), "song");
 
-            @Override
-            public DownloadEvent getEvent(){
-                return new DownloadEvent.PlaylistSearchEvent();
-            }
-
-            @Override
-            public String toString() {
-                return "playlist";
-            }
-        });
-        JFXRadioButton artistRd = new JFXRadioButton("Artist");
-        artistRd.setPadding(new Insets(10));
-        artistRd.setToggleGroup(selectToggle);
-        artistRd.setUserData(new ToggleData() {
-
-            @Override
-            public DownloadEvent getEvent(){
-                return new DownloadEvent.ArtistSearchEvent();
-            }
-
-            @Override
-            public String toString() {
-                return "artist";
-            }
-        });
-        JFXRadioButton albumRd = new JFXRadioButton("Album");
-        albumRd.setPadding(new Insets(10));
-        albumRd.setToggleGroup(selectToggle);
-        albumRd.setUserData(new ToggleData() {
-
-            @Override
-            public DownloadEvent getEvent(){
-                return new DownloadEvent.AlbumSearchEvent();
-            }
-
-            @Override
-            public String toString() {
-                return "album";
-            }
-        });
-        JFXRadioButton songRd = new JFXRadioButton("Song");
-        songRd.setPadding(new Insets(10));
-        songRd.setToggleGroup(selectToggle);
-        songRd.setUserData(new ToggleData() {
-
-            @Override
-            public DownloadEvent getEvent(){
-                return new DownloadEvent.SongSearchEvent();
-            }
-
-            @Override
-            public String toString() {
-                return "song";
-            }
-        });
-        selectType.getChildren().addAll(playlistRd, artistRd, albumRd, songRd);
         selectToggle.selectedToggleProperty().addListener(
-                event -> DownloadPopupController.setUpidValidatedTextField(
-                        selectToggle.getSelectedToggle().getUserData().toString(), searchBox));
+                event -> Center.setUpIdValidationTextField(
+                        ((ToggleData) selectToggle.getSelectedToggle().getUserData()).getData(), searchBox));
 
-        selectToggle.selectToggle(playlistRd);
+        selectToggle.selectToggle(selectToggle.getToggles().get(0));
     }
 
-    // TODO make a separate file for this interface, do not put all the search event in the Download Event class. Instead, create a new class for search event
-    interface ToggleData {
-        DownloadEvent getEvent();
+    private void setUpRadioButton(RunnableEvent event, String data) {
+        JFXRadioButton radioButton = new JFXRadioButton(data.substring(0, 1).toUpperCase() + data.substring(1));
+        radioButton.setPadding(new Insets(10));
+        radioButton.setToggleGroup(selectToggle);
+        radioButton.setUserData(new ToggleData(event, data));
+        selectType.getChildren().add(radioButton);
     }
     
     public void search() {
@@ -174,7 +121,7 @@ public class MainController implements Initializable {
             // Start a new Thread to search in background
             String id = searchBox.getText();
             Center.printToStatus("Searching in process...");
-            DownloadEvent event = ((ToggleData) selectToggle.getSelectedToggle().getUserData()).getEvent();
+            RunnableEvent event = ((ToggleData) selectToggle.getSelectedToggle().getUserData()).getEvent();
             ReadIDTask searchTask = new ReadIDTask(id, event);
             searchProgress.visibleProperty().bind(searchTask.runningProperty());
             new Thread(searchTask).start();

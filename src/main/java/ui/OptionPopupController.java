@@ -34,6 +34,8 @@ public class OptionPopupController implements Initializable {
     private final JFXTextField downloadFolderField = new JFXTextField(Database.getSongDir().getAbsolutePath());
     private final DirectoryChooser directoryChooser = new DirectoryChooser();
     private final JFXButton browseButton = new JFXButton("Browse");
+    private JFXAlert setting;
+    private boolean isInit = false;
 
     @PostConstruct
     @Override
@@ -56,26 +58,30 @@ public class OptionPopupController implements Initializable {
 
     @FXML
     public void openSettings() {
-        JFXAlert setting = new JFXAlert((Stage) Center.getRootWindow());
-        setting.setSize(700, 600);
-        setting.initModality(Modality.APPLICATION_MODAL);
-        setting.setOverlayClose(false);
+        if (!isInit) {
+            setting = new JFXAlert((Stage) Center.getRootWindow());
+            setting.setSize(700, 600);
+            setting.initModality(Modality.APPLICATION_MODAL);
+            setting.setOverlayClose(false);
 
-        JFXDialogLayout layout = new JFXDialogLayout();
-        layout.setHeading(new Label("Setting"));
+            JFXDialogLayout layout = new JFXDialogLayout();
+            layout.setHeading(new Label("Setting"));
 
-        layout.setBody(settingRoot);
+            layout.setBody(settingRoot);
 
-        JFXButton acceptButton = new JFXButton("SAVE");
-        acceptButton.getStyleClass().add("dialog-accept");
-        acceptButton.setOnAction(event -> saveSetting(setting));
+            JFXButton acceptButton = new JFXButton("SAVE");
+            acceptButton.getStyleClass().add("dialog-accept");
+            acceptButton.setOnAction(event -> saveSetting(setting));
 
-        JFXButton closeButton = new JFXButton("CANCEL");
-        closeButton.setOnAction(event -> setting.hideWithAnimation());
+            JFXButton closeButton = new JFXButton("CANCEL");
+            closeButton.setOnAction(event -> setting.hideWithAnimation());
 
-        layout.setActions(acceptButton, closeButton);
+            layout.setActions(acceptButton, closeButton);
 
-        setting.setContent(layout);
+            setting.setContent(layout);
+
+            isInit = true;
+        }
         setting.show();
     }
 

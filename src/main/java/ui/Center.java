@@ -1,5 +1,6 @@
 package ui;
 
+import com.jfoenix.controls.JFXTextField;
 import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
@@ -13,6 +14,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Center {
 
@@ -47,6 +50,26 @@ public class Center {
             String status = String.format(" %s / %s downloading", downloading, size);
             downloadStatus.setText(status);
         });
+    }
+
+    public static void setUpIdValidationTextField(String tag, JFXTextField textField) {
+        textField.setValidators(new PositiveNumberValidator("id must be a number"));
+        textField.focusedProperty().addListener((observable, oldValue, newValue) -> {
+            // use regex to fetch song id from url if necessary
+            String id = textField.getText().trim();
+            if (!id.matches("^\\d*$")) {
+                String regex = tag + "\\?id=(\\d*)";
+                Pattern pattern = Pattern.compile(regex);
+                Matcher matcher = pattern.matcher(id);
+                if (matcher.find())
+                    id = matcher.group(1);
+            }
+            textField.setText(id);
+
+            textField.validate();
+        });
+        textField.setPromptText(tag.substring(0, 1).toUpperCase() + tag.substring(1) + " ID");
+        textField.setLabelFloat(true);
     }
 
     public static void printToStatus(String status) {
