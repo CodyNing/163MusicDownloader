@@ -70,9 +70,10 @@ public class DownloadPopupController {
                 String id = textField.getText();
                 alert.hideWithAnimation();
 
-                new Thread(new ReadIDTask(id, task)).start();
+                Thread thread = new Thread(new ReadIDTask(id, task));
+                thread.setDaemon(true);
+                thread.start();
             }
-
         });
 
         JFXButton closeButton = new JFXButton("CANCEL");

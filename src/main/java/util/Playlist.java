@@ -48,4 +48,7 @@ public class Playlist implements Serializable {
     }
 
 
+    public int size() {
+        return songList.size();
+    }
 }

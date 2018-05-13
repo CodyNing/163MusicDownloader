@@ -90,7 +90,7 @@ public interface RunnableEvent {
         public boolean run(String id) {
             try {
                 Playlist playlist = Spider.getPlaylistByID(id);
-                Searcher.setSearchList(playlist.getSongList());
+                Center.setSearchList(playlist.getSongList());
             } catch (IOException e) {
                 Center.printToStatus(String.format("Unable to get playlist, id: %s\n", id));
                 System.err.printf("Unable to get playlist, id: %s\n", id);
@@ -108,9 +108,10 @@ public interface RunnableEvent {
         @Override
         public boolean run(String id) {
             try {
+                Song song = Spider.getSongByID(id);
                 Set<Song> songList = new HashSet<>();
-                songList.add(Spider.getSongByID(id));
-                Searcher.setSearchList(songList);
+                songList.add(song);
+                Center.setSearchList(songList);
             } catch (IOException e) {
                 Center.printToStatus(String.format("Unable to download song, id: %s\n", id));
                 System.err.printf("Unable to download song, id: %s\n", id);
@@ -128,7 +129,7 @@ public interface RunnableEvent {
         @Override
         public boolean run(String id) {
             try {
-                Searcher.setSearchList(Spider.getAlbumByID(id).getSongList());
+                Center.setSearchList(Spider.getAlbumByID(id).getSongList());
             } catch (IOException e) {
                 Center.printToStatus(String.format("Unable to download album, id: %s\n", id));
                 System.err.printf("Unable to download album, id: %s\n", id);
@@ -150,7 +151,7 @@ public interface RunnableEvent {
                 Set<Song> songList = new HashSet<>();
                 for (Album a : albumList)
                     songList.addAll(a.getSongList());
-                Searcher.setSearchList(songList);
+                Center.setSearchList(songList);
             } catch (IOException e) {
                 Center.printToStatus(String.format("Unable to download artist's songs, id: %s\n", id));
                 System.err.printf("Unable to download artist's songs, id: %s\n", id);

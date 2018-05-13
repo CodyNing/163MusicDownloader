@@ -1,7 +1,12 @@
 package ui;
 
 import com.jfoenix.controls.JFXTextField;
+import com.jfoenix.controls.JFXTreeTableView;
+import com.jfoenix.controls.RecursiveTreeItem;
+import com.jfoenix.controls.datamodels.treetable.RecursiveTreeObject;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
@@ -9,11 +14,13 @@ import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 import util.Database;
 import util.Downloader;
+import util.Song;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -35,6 +42,7 @@ public class Center {
         }
     };
     private static Scene rootScene;
+    private static JFXTreeTableView<Song> searchView;
 
     public static void setLabel(Label downloadStatus, Label statusLabel) {
         Center.downloadStatus = downloadStatus;
@@ -86,6 +94,27 @@ public class Center {
 
     public static void setRootScene(Scene rootScene) {
         Center.rootScene = rootScene;
+    }
+
+    public static void setSearchView(JFXTreeTableView<Song> searchView) {
+        Center.searchView = searchView;
+    }
+
+    public static void setSearchList(Set<Song> searchList) {
+        Platform.runLater(() -> {
+            ObservableList<Song> dataList = FXCollections.observableArrayList(searchList);
+            searchView.setRoot(new RecursiveTreeItem<>(dataList, RecursiveTreeObject::getChildren));
+            for (Song song : dataList) {
+                song.setProperty();
+            }
+            Thread thread = new Thread(() -> {
+                for (Song song : dataList) {
+                    song.setArtistAndAlbum();
+                }
+            });
+            thread.setDaemon(true);
+            thread.start();
+        });
     }
 
 }

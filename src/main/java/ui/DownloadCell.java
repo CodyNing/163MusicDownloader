@@ -28,7 +28,7 @@ class DownloadCell extends JFXListCell<Downloader.Download> {
         if (download != null) {
             BorderPane node = new BorderPane();
 
-            Label songLabel = new Label(download.getSong().getTitle() + " - " + download.getStatus());
+            Label songLabel = new Label(download.getSong().getTitleProperty() + " - " + download.getStatus());
             node.setLeft(songLabel);
 
             JFXProgressBar progressBar = new JFXProgressBar();

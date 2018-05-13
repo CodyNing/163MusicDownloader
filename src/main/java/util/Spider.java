@@ -98,9 +98,7 @@ public class Spider {
         Elements eleSongList = eleListDetail.select("a[href]");
         if (eleSongList.size() == 0)
             throw new ElementNotFoundException("Unable to get playlist, id: " + playlistId);
-        eleSongList.forEach(song -> songList.add(new Song(song.attr("href").substring(9), song.text()))
-        );
-
+        eleSongList.forEach(song -> songList.add(new Song(song.attr("href").substring(9), song.text())));
 
         return new Playlist(playlistId, elePlaylistTitle.text(), songList);
     }
@@ -134,7 +132,7 @@ public class Spider {
         album = new Album(artist, eleAlbumTitle.text(), albumID, songList);
         Album finalAlbum = album;
         int trackNo = 0;
-        for(Element song : eleSongList) {
+        for (Element song : eleSongList) {
             Song temp = new Song(song.attr("href").substring(9), song.text());
             temp.setTrackNo(++trackNo + "");
             temp.setArtist(artist);
@@ -203,6 +201,8 @@ public class Spider {
             if (info == null)
                 throw new ElementNotFoundException("Unable to get song : " + song);
             Elements eleInfo = info.select("a[class=s-fc7]");
+            if (eleInfo.size() < 2)
+                return;
             Element eleArtist = eleInfo.get(0);
             Artist artist = new Artist(eleArtist.text(), eleArtist.attr("href").substring(11));
             Element eleAlbum = eleInfo.get(1);
