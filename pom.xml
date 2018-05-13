@@ -6,7 +6,7 @@
 
     <groupId>ca.bcit.cst.rongyi</groupId>
     <artifactId>163Music</artifactId>
-    <version>v0.2</version>
+    <version>v0.3</version>
 
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -19,7 +19,7 @@
         <dependency>
             <groupId>com.jfoenix</groupId>
             <artifactId>jfoenix</artifactId>
-            <version>8.0.4</version>
+            <version>9.0.4</version>
         </dependency>
         <dependency>
             <groupId>com.mpatric</groupId>
