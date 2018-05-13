@@ -34,9 +34,12 @@ class DownloadCell extends JFXListCell<Downloader.Download> {
             JFXProgressBar progressBar = new JFXProgressBar();
             progressBar.progressProperty().bind(download.progressProperty());
             JFXButton cancelButton = new JFXButton("Cancel");
+            cancelButton.setStyle("-fx-text-fill:WHITE;-fx-background-color:#d50000;-fx-font-size:14px;");
+            cancelButton.setButtonType(JFXButton.ButtonType.RAISED);
             cancelButton.setOnAction(event -> download.cancelDownload());
             HBox right = new HBox(progressBar, cancelButton);
             right.setAlignment(Pos.CENTER);
+            right.setSpacing(10.0);
             node.setRight(right);
 
             setGraphic(node);

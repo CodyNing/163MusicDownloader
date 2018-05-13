@@ -78,7 +78,7 @@ public class Song extends RecursiveTreeObject<Song> implements Serializable {
                 try {
                     Thread.sleep(data.getFailConnectionWaitTime() * 1000);
                 } catch (InterruptedException e1) {
-                    e1.printStackTrace();
+                    // Let it go
                 }
                 setDownloadURL(tried + 1);
             } else {

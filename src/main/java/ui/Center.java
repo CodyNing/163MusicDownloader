@@ -43,6 +43,7 @@ public class Center {
     };
     private static Scene rootScene;
     private static JFXTreeTableView<Song> searchView;
+    private static Label searchListLabel;
 
     public static void setLabel(Label downloadStatus, Label statusLabel) {
         Center.downloadStatus = downloadStatus;
@@ -104,6 +105,7 @@ public class Center {
         Platform.runLater(() -> {
             ObservableList<Song> dataList = FXCollections.observableArrayList(searchList);
             searchView.setRoot(new RecursiveTreeItem<>(dataList, RecursiveTreeObject::getChildren));
+            searchListLabel.setText(String.format("Found %s results", searchList.size()));
             for (Song song : dataList) {
                 song.setProperty();
             }
@@ -117,4 +119,7 @@ public class Center {
         });
     }
 
+    public static void setSearchListLabel(Label searchListLabel) {
+        Center.searchListLabel = searchListLabel;
+    }
 }

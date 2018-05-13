@@ -1,17 +1,14 @@
 package ui;
 
 import com.jfoenix.controls.*;
+import javafx.beans.binding.Bindings;
 import javafx.beans.value.ObservableValue;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
-import javafx.scene.control.Label;
-import javafx.scene.control.ToggleGroup;
-import javafx.scene.control.TreeTableCell;
-import javafx.scene.control.TreeTableColumn;
+import javafx.scene.control.*;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import util.Downloader;
 import util.Song;
@@ -22,7 +19,6 @@ import java.net.URL;
 import java.util.ResourceBundle;
 import java.util.function.Function;
 
-// TODO Cody's added UI are too ugly, needs improvement (try to implement Google Material Design
 public class MainController implements Initializable {
 
     @FXML
@@ -56,9 +52,7 @@ public class MainController implements Initializable {
     private HBox selectType;
 
     @FXML
-    private JFXTextField searchBox;
-
-    private ObservableList<Song> treeItemList = FXCollections.observableArrayList();
+    private JFXTextField searchTextField;
 
     @FXML
     private JFXHamburger titleBurger;
@@ -71,6 +65,18 @@ public class MainController implements Initializable {
 
     @FXML
     private JFXRippler optionRippler;
+
+    @FXML
+    private JFXTextField searchFilterField;
+
+    @FXML
+    private Label searchListLabel;
+
+    @FXML
+    private Label selectionLabel;
+
+    @FXML
+    private BorderPane searchListBar;
 
     private JFXPopup downloadPopup;
 
@@ -123,7 +129,7 @@ public class MainController implements Initializable {
 
         selectToggle.selectedToggleProperty().addListener(
                 event -> Center.setUpIdValidationTextField(
-                        ((ToggleData) selectToggle.getSelectedToggle().getUserData()).getData(), searchBox));
+                        ((ToggleData) selectToggle.getSelectedToggle().getUserData()).getData(), searchTextField));
 
         selectToggle.selectToggle(selectToggle.getToggles().get(0));
     }
@@ -138,10 +144,10 @@ public class MainController implements Initializable {
 
     @FXML
     public void search() {
-        if (selectToggle.getSelectedToggle() != null && searchBox.validate()) {
+        if (selectToggle.getSelectedToggle() != null && searchTextField.validate()) {
             // Start a new Thread to search in background
-            String id = searchBox.getText();
-            searchBox.clear();
+            String id = searchTextField.getText();
+            searchTextField.clear();
             Center.printToStatus("Searching in process...");
             RunnableEvent event = ((ToggleData) selectToggle.getSelectedToggle().getUserData()).getEvent();
             ReadIDTask searchTask = new ReadIDTask(id, event);
@@ -155,6 +161,7 @@ public class MainController implements Initializable {
     private void initSearchView() {
         searchView.setEditable(false);
         searchView.setShowRoot(false);
+        searchView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
         setupCellValueFactory(titleColumn, Song::titlePropertyProperty);
         setupCellValueFactory(artistColumn, Song::artistNameProperty);
@@ -176,7 +183,22 @@ public class MainController implements Initializable {
             }
         });
 
+        searchFilterField.textProperty().addListener((observable, oldValue, newValue) -> {
+            searchView.setPredicate(songProp -> {
+                final Song song = songProp.getValue();
+                String filter = newValue.toLowerCase();
+                return song.getTitle().toLowerCase().contains(filter)
+                        || (song.getArtist() != null && song.getArtist().getName().toLowerCase().contains(filter))
+                        || (song.getAlbum() != null && song.getAlbum().getName().toLowerCase().contains(filter));
+            });
+        });
+        selectionLabel.textProperty().bind(Bindings.createStringBinding(() -> searchView.getSelectionModel().getSelectedCells().size() + " song(s) selected",
+                searchView.getSelectionModel().getSelectedItems()));
+
+        searchListBar.setPadding(new Insets(0.0, 10.0, 0.0, 10.0));
+
         Center.setSearchView(searchView);
+        Center.setSearchListLabel(searchListLabel);
     }
 
     private <T> void setupCellValueFactory(JFXTreeTableColumn<Song, T> column, Function<Song, ObservableValue<T>> mapper) {
@@ -187,6 +209,20 @@ public class MainController implements Initializable {
                 return column.getComputedValue(param);
             }
         });
+    }
+
+    @FXML
+    public void downloadAll() {
+        for (TreeItem<Song> songTreeItem : searchView.getRoot().getChildren()) {
+            songTreeItem.getValue().download();
+        }
+    }
+
+    @FXML
+    public void downloadSelected() {
+        for (TreeTablePosition<Song, ?> cell : searchView.getSelectionModel().getSelectedCells()) {
+            cell.getTreeItem().getValue().download();
+        }
     }
 
 }

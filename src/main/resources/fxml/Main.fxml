@@ -37,7 +37,7 @@
                                     <VBox alignment="CENTER" spacing="20">
                                         <Label text="Enter playlist/artist/album/song id to search"/>
                                         <HBox alignment="CENTER" spacing="10">
-                                            <JFXTextField fx:id="searchBox"/>
+                                            <JFXTextField fx:id="searchTextField"/>
                                             <JFXButton onAction="#search" text="Search" styleClass="jfx-dialog-accept"
                                                        style="-fx-text-fill:WHITE;-fx-background-color:#5264AE;-fx-font-size:14px;"></JFXButton>
                                         </HBox>
@@ -48,18 +48,40 @@
                                 </VBox>
                             </body>
                         </JFXDialogLayout>
-                        <JFXTreeTableView fx:id="searchView" VBox.vgrow="ALWAYS">
-                            <columns>
-                                <JFXTreeTableColumn fx:id="titleColumn" text="Title"
-                                                    prefWidth="400"></JFXTreeTableColumn>
-                                <JFXTreeTableColumn fx:id="artistColumn" text="Artist"
-                                                    prefWidth="250"></JFXTreeTableColumn>
-                                <JFXTreeTableColumn fx:id="albumColumn" text="Album"
-                                                    prefWidth="400"></JFXTreeTableColumn>
-                                <JFXTreeTableColumn fx:id="actionColumn" text="Action"
-                                                    prefWidth="100"></JFXTreeTableColumn>
-                            </columns>
-                        </JFXTreeTableView>
+                        <VBox VBox.vgrow="ALWAYS">
+                            <BorderPane fx:id="searchListBar">
+                                <left>
+                                    <HBox alignment="CENTER_RIGHT" spacing="20.0">
+                                        <JFXTextField fx:id="searchFilterField" promptText="Search"
+                                                      labelFloat="true"></JFXTextField>
+                                        <Label styleClass="title-label" fx:id="selectionLabel"></Label>
+                                        <Label styleClass="title-label" fx:id="searchListLabel"></Label>
+                                    </HBox>
+                                </left>
+                                <right>
+                                    <HBox alignment="CENTER_RIGHT" spacing="20.0">
+                                        <JFXButton text="Download All"
+                                                   style="-fx-text-fill:WHITE;-fx-background-color:#5264AE;-fx-font-size:14px;"
+                                                   onAction="#downloadAll"></JFXButton>
+                                        <JFXButton text="Download Selected"
+                                                   style="-fx-text-fill:WHITE;-fx-background-color:#5264AE;-fx-font-size:14px;"
+                                                   onAction="#downloadSelected"></JFXButton>
+                                    </HBox>
+                                </right>
+                            </BorderPane>
+                            <JFXTreeTableView fx:id="searchView" VBox.vgrow="ALWAYS">
+                                <columns>
+                                    <JFXTreeTableColumn fx:id="titleColumn" text="Title"
+                                                        prefWidth="400"></JFXTreeTableColumn>
+                                    <JFXTreeTableColumn fx:id="artistColumn" text="Artist"
+                                                        prefWidth="250"></JFXTreeTableColumn>
+                                    <JFXTreeTableColumn fx:id="albumColumn" text="Album"
+                                                        prefWidth="400"></JFXTreeTableColumn>
+                                    <JFXTreeTableColumn fx:id="actionColumn" text="Action"
+                                                        prefWidth="100"></JFXTreeTableColumn>
+                                </columns>
+                            </JFXTreeTableView>
+                        </VBox>
                     </VBox>
                 </content>
             </Tab>
