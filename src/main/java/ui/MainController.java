@@ -8,7 +8,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import util.Downloader;
 import util.Song;
@@ -20,9 +19,6 @@ import java.util.ResourceBundle;
 import java.util.function.Function;
 
 public class MainController implements Initializable {
-
-    @FXML
-    private Label downloadStatus;
 
     @FXML
     private Label statusLabel;
@@ -76,7 +72,13 @@ public class MainController implements Initializable {
     private Label selectionLabel;
 
     @FXML
-    private BorderPane searchListBar;
+    private Tab downloadTab;
+
+    @FXML
+    private JFXButton downloadSelectedButton;
+
+    @FXML
+    private JFXButton downloadAllButton;
 
     private JFXPopup downloadPopup;
 
@@ -94,8 +96,7 @@ public class MainController implements Initializable {
     @PostConstruct
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        Center.setLabel(downloadStatus, statusLabel);
-        Center.updateListStatus();
+        Center.setLabel(statusLabel);
         Center.printToStatus("Welcome to 163Music");
 
         listView.setItems(Downloader.getInstance().getDownloadList());
@@ -119,6 +120,12 @@ public class MainController implements Initializable {
         }
         optionBurger.setOnMouseClicked(event -> optionPopup.show(optionRippler, JFXPopup.PopupVPosition.TOP, JFXPopup.PopupHPosition.RIGHT, -50.0, 10.0));
 
+        downloadTab.textProperty().bind(Bindings.createStringBinding(
+                () -> String.format("Download (%s)", Downloader.getInstance().getDownloadList().size()),
+                Downloader.getInstance().getDownloadList())
+        );
+
+        downloadSelectedButton.disableProperty().bind(Bindings.createBooleanBinding(() -> searchView.getSelectionModel().getSelectedItems().size() == 0, searchView.getSelectionModel().getSelectedItems()));
     }
 
     private void setUpRdToggle() {
@@ -192,10 +199,9 @@ public class MainController implements Initializable {
                         || (song.getAlbum() != null && song.getAlbum().getName().toLowerCase().contains(filter));
             });
         });
-        selectionLabel.textProperty().bind(Bindings.createStringBinding(() -> searchView.getSelectionModel().getSelectedCells().size() + " song(s) selected",
+        selectionLabel.textProperty().bind(Bindings.createStringBinding(
+                () -> searchView.getSelectionModel().getSelectedCells().size() + " song(s) selected",
                 searchView.getSelectionModel().getSelectedItems()));
-
-        searchListBar.setPadding(new Insets(0.0, 10.0, 0.0, 10.0));
 
         Center.setSearchView(searchView);
         Center.setSearchListLabel(searchListLabel);
@@ -213,6 +219,8 @@ public class MainController implements Initializable {
 
     @FXML
     public void downloadAll() {
+        if (searchView.getRoot() == null)
+            return;
         for (TreeItem<Song> songTreeItem : searchView.getRoot().getChildren()) {
             songTreeItem.getValue().download();
         }

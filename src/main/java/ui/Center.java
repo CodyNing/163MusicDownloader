@@ -26,8 +26,6 @@ import java.util.regex.Pattern;
 
 public class Center {
 
-    private static Label downloadStatus;
-
     private static Label statusLabel;
 
     public static final EventHandler<WindowEvent> CLOSE_EVENT = (EventHandler<WindowEvent>) event -> {
@@ -45,20 +43,8 @@ public class Center {
     private static JFXTreeTableView<Song> searchView;
     private static Label searchListLabel;
 
-    public static void setLabel(Label downloadStatus, Label statusLabel) {
-        Center.downloadStatus = downloadStatus;
+    public static void setLabel(Label statusLabel) {
         Center.statusLabel = statusLabel;
-    }
-
-    public static void updateListStatus() {
-        Platform.runLater(() -> {
-            Downloader downloader = Downloader.getInstance();
-            int downloading = downloader.getCurrentDownloading();
-            int size = downloader.getDownloadList().size();
-
-            String status = String.format(" %s / %s downloading", downloading, size);
-            downloadStatus.setText(status);
-        });
     }
 
     public static void setUpIdValidationTextField(String tag, JFXTextField textField) {
@@ -89,9 +75,6 @@ public class Center {
         return rootScene.getWindow();
     }
 
-    public static Scene getRootScene() {
-        return rootScene;
-    }
 
     public static void setRootScene(Scene rootScene) {
         Center.rootScene = rootScene;

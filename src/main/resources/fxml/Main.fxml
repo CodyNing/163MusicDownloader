@@ -50,6 +50,9 @@
                         </JFXDialogLayout>
                         <VBox VBox.vgrow="ALWAYS">
                             <BorderPane fx:id="searchListBar">
+                                <padding>
+                                    <Insets left="10.0" right="10.0"></Insets>
+                                </padding>
                                 <left>
                                     <HBox alignment="CENTER_RIGHT" spacing="20.0">
                                         <JFXTextField fx:id="searchFilterField" promptText="Search"
@@ -60,10 +63,10 @@
                                 </left>
                                 <right>
                                     <HBox alignment="CENTER_RIGHT" spacing="20.0">
-                                        <JFXButton text="Download All"
+                                        <JFXButton text="Download All" fx:id="downloadAllButton"
                                                    style="-fx-text-fill:WHITE;-fx-background-color:#5264AE;-fx-font-size:14px;"
                                                    onAction="#downloadAll"></JFXButton>
-                                        <JFXButton text="Download Selected"
+                                        <JFXButton text="Download Selected" fx:id="downloadSelectedButton"
                                                    style="-fx-text-fill:WHITE;-fx-background-color:#5264AE;-fx-font-size:14px;"
                                                    onAction="#downloadSelected"></JFXButton>
                                     </HBox>
@@ -85,22 +88,16 @@
                     </VBox>
                 </content>
             </Tab>
-            <Tab text="Download">
+            <Tab fx:id="downloadTab" text="Download">
                 <content>
                     <JFXListView fx:id="listView"/>
                 </content>
             </Tab>
         </JFXTabPane>
-        <HBox prefHeight="0.0" prefWidth="248.0">
+        <HBox prefHeight="0.0" prefWidth="248.0" alignment="CENTER">
             <padding>
                 <Insets left="5.0" right="5.0"/>
             </padding>
-            <Label fx:id="downloadStatus" text=" 0 / 0 downloading"/>
-            <Separator orientation="VERTICAL" prefHeight="200.0">
-                <padding>
-                    <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
-                </padding>
-            </Separator>
             <Label fx:id="statusLabel" text="status"/>
         </HBox>
     </VBox>
