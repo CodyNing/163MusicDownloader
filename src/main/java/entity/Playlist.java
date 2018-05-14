@@ -1,6 +1,10 @@
-package util;
+package entity;
 
 import ui.Center;
+import util.Database;
+import util.Downloader;
+import util.ElementNotFoundException;
+import util.Spider;
 
 import java.io.IOException;
 import java.io.Serializable;

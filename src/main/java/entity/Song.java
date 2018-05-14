@@ -1,9 +1,13 @@
-package util;
+package entity;
 
 import com.jfoenix.controls.datamodels.treetable.RecursiveTreeObject;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import ui.Center;
+import util.Database;
+import util.Downloader;
+import util.ElementNotFoundException;
+import util.Spider;
 
 import java.io.File;
 import java.io.IOException;
@@ -202,6 +206,6 @@ public class Song extends RecursiveTreeObject<Song> implements Serializable {
     }
 
     public boolean exists() {
-        return new File(Database.getSongDir() + "\\" + getArtist().getName() + " - " + getTitleProperty() + ".mp3").exists();
+        return new File(Database.database.getSongDir() + "\\" + getArtist().getName() + " - " + getTitleProperty() + ".mp3").exists();
     }
 }

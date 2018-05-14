@@ -1,6 +1,6 @@
-package util;
+package entity;
 
-import util.Album;
+import util.Database;
 
 import java.io.Serializable;
 import java.util.HashSet;
