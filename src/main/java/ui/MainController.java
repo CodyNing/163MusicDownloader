@@ -85,7 +85,7 @@ public class MainController implements Initializable {
 
     private JFXPopup optionPopup;
 
-    private ToggleGroup selectToggle = new ToggleGroup();
+    private final ToggleGroup selectToggle = new ToggleGroup();
 
 
     public MainController() {
@@ -189,15 +189,14 @@ public class MainController implements Initializable {
             }
         });
 
-        searchFilterField.textProperty().addListener((observable, oldValue, newValue) -> {
-            searchView.setPredicate(songProp -> {
-                final Song song = songProp.getValue();
-                String filter = newValue.toLowerCase();
-                return song.getTitle().toLowerCase().contains(filter)
-                        || (song.getArtist() != null && song.getArtist().getName().toLowerCase().contains(filter))
-                        || (song.getAlbum() != null && song.getAlbum().getName().toLowerCase().contains(filter));
-            });
-        });
+        searchFilterField.textProperty().addListener((observable, oldValue, newValue) ->
+                searchView.setPredicate(songProp -> {
+                    final Song song = songProp.getValue();
+                    String filter = newValue.toLowerCase();
+                    return song.getTitle().toLowerCase().contains(filter)
+                            || (song.getArtist() != null && song.getArtist().getName().toLowerCase().contains(filter))
+                            || (song.getAlbum() != null && song.getAlbum().getName().toLowerCase().contains(filter));
+                }));
         selectionLabel.textProperty().bind(Bindings.createStringBinding(
                 () -> searchView.getSelectionModel().getSelectedCells().size() + " song(s) selected",
                 searchView.getSelectionModel().getSelectedItems()));

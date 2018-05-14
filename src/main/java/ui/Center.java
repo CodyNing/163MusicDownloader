@@ -34,7 +34,7 @@ public class Center {
 
     private static Label statusLabel;
 
-    private static List<Runnable> closeEventList = new ArrayList<>();
+    private static final List<Runnable> closeEventList = new ArrayList<>();
 
     private static File newSongDir;
 
