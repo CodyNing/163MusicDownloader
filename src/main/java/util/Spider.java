@@ -4,13 +4,29 @@ import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.openqa.selenium.By;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.phantomjs.PhantomJSDriver;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import javafx.scene.image.Image;
 import ui.Center;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import javax.imageio.ImageIO;
+import javax.swing.plaf.FileChooserUI;
 
 public class Spider {
 
@@ -39,6 +55,12 @@ public class Spider {
                 .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.143 Safari/537.36");
     }
 
+    private static PhantomJSDriver get163Search(String url) {
+        PhantomJSDriver myDriver = PhantomDriver.getDriver();
+        myDriver.get(url);
+        return myDriver;
+    }
+    
     public static String getSongDownloadURL(String songID) throws IOException {
         Element body = get163Connection(DOWNLOADER_URL)
                 .data("id", songID)
@@ -212,6 +234,24 @@ public class Spider {
         } catch (IOException e) {
             System.err.printf("Cannot get Artist and Album from song, id: %s\n", song.getId());
         }
+    }
+    
+    public static void getBody() {
+        PhantomJSDriver mydriver = (PhantomJSDriver) get163Search("https://music.163.com/#/search/m/?s=xi&type=1");
+        File myfile = mydriver.getScreenshotAs(OutputType.FILE);
+        Image img = null;
+        
+//        mydriver.getPageSource();
+//        WebDriverWait waiter = new WebDriverWait(mydriver, 20);
+//        waiter.until(driver->{
+//            WebElement element = mydriver.findElement(By.xpath("//*[@id='m-search']"));
+//            System.out.println(element.getAttribute("name"));
+//            return true;
+//        });
+    }
+    
+    public static void main(String[] args) {
+        getBody();
     }
 
 }

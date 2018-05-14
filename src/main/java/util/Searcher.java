@@ -13,22 +13,12 @@ import ui.Center;
 public class Searcher {
 
     private static ObservableList<Song> searchlist = FXCollections.synchronizedObservableList(FXCollections.observableList(new LinkedList<Song>()));
-    
-    public static final ExecutorService searchThread = Executors.newSingleThreadExecutor();
-    
+
     public static ObservableList<Song> getSearchlist() {
         return searchlist;
     }
-
-    public static ExecutorService getSearchthread() {
-        return searchThread;
-    }
-
-    public static void setSearchlist(ObservableList<Song> searchlist) {
-        Searcher.searchlist = searchlist;
-    }
     
-    public static void setSearchlist(Collection<Song> searchlist) {
+    public static synchronized void setSearchlist(Collection<Song> searchlist) {
         Platform.runLater(() -> {
             Searcher.searchlist.clear();
             Searcher.searchlist.addAll(searchlist);
