@@ -4,6 +4,7 @@ import com.jfoenix.controls.JFXTextField;
 import com.jfoenix.controls.JFXTreeTableView;
 import com.jfoenix.controls.RecursiveTreeItem;
 import com.jfoenix.controls.datamodels.treetable.RecursiveTreeObject;
+import entity.Song;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -14,12 +15,17 @@ import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 import util.Database;
 import util.Downloader;
-import util.Song;
+import util.ThreadUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -28,15 +34,37 @@ public class Center {
 
     private static Label statusLabel;
 
+    private static List<Runnable> closeEventList = new ArrayList<>();
+
+    private static File newSongDir;
+
     public static final EventHandler<WindowEvent> CLOSE_EVENT = (EventHandler<WindowEvent>) event -> {
+        // set to new directory
+        if (newSongDir != null) {
+            for (File file : Database.database.getSongDir().listFiles()) {
+                try {
+                    Files.move(file.toPath(), Paths.get(newSongDir.getAbsolutePath() + "\\" + file.getName()), StandardCopyOption.REPLACE_EXISTING);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            Database.database.setSongDir(newSongDir);
+        }
+        // delete temp files
         for (File f : Downloader.TEMP_DIR.listFiles()) {
             f.delete();
         }
-        try {
-            ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(Database.OUTPUT));
-            out.writeObject(Database.getInstance());
-        } catch (IOException e) {
-            e.printStackTrace();
+        // Save data
+        closeEventList.add(() -> {
+            try {
+                ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(Database.OUTPUT));
+                out.writeObject(Database.getInstance());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+        for (Runnable runnable : closeEventList) {
+            runnable.run();
         }
     };
     private static Scene rootScene;
@@ -75,7 +103,6 @@ public class Center {
         return rootScene.getWindow();
     }
 
-
     public static void setRootScene(Scene rootScene) {
         Center.rootScene = rootScene;
     }
@@ -92,17 +119,23 @@ public class Center {
             for (Song song : dataList) {
                 song.setProperty();
             }
-            Thread thread = new Thread(() -> {
+            ThreadUtils.startNormalThread(() -> {
                 for (Song song : dataList) {
                     song.setArtistAndAlbum();
                 }
             });
-            thread.setDaemon(true);
-            thread.start();
         });
+    }
+
+    public static void addCloseEvent(Runnable runnable) {
+        closeEventList.add(runnable);
     }
 
     public static void setSearchListLabel(Label searchListLabel) {
         Center.searchListLabel = searchListLabel;
+    }
+
+    public static void setNewSongDir(File newSongDir) {
+        Center.newSongDir = newSongDir;
     }
 }

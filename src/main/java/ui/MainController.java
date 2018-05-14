@@ -1,6 +1,7 @@
 package ui;
 
 import com.jfoenix.controls.*;
+import entity.Song;
 import javafx.beans.binding.Bindings;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
@@ -10,7 +11,7 @@ import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import util.Downloader;
-import util.Song;
+import util.ThreadUtils;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -159,9 +160,7 @@ public class MainController implements Initializable {
             RunnableEvent event = ((ToggleData) selectToggle.getSelectedToggle().getUserData()).getEvent();
             ReadIDTask searchTask = new ReadIDTask(id, event);
             searchProgress.visibleProperty().bind(searchTask.runningProperty());
-            Thread thread = new Thread(searchTask);
-            thread.setDaemon(true);
-            thread.start();
+            ThreadUtils.startNormalThread(searchTask);
         }
     }
 
@@ -181,7 +180,7 @@ public class MainController implements Initializable {
                     JFXButton button = new JFXButton("Download");
                     button.setStyle("-fx-text-fill:WHITE;-fx-background-color:#5264AE;-fx-font-size:14px;");
                     button.setButtonType(JFXButton.ButtonType.RAISED);
-                    button.setOnAction(event -> new Thread(new ReadIDTask(id, new RunnableEvent.SongDownloadEvent())).start());
+                    button.setOnAction(event -> ThreadUtils.startNormalThread(new ReadIDTask(id, new RunnableEvent.SongDownloadEvent())));
                     setGraphic(button);
                     setText("");
                 } else {

@@ -35,7 +35,7 @@ public class OptionPopupController implements Initializable {
     private final JFXTextField waitTimeField = new JFXTextField(String.valueOf(Database.getInstance().getFailConnectionWaitTime()));
     private final JFXTextField reconnectTimeField = new JFXTextField(String.valueOf(Database.getInstance().getReconnectionTimes()));
 
-    private final JFXTextField downloadFolderField = new JFXTextField(Database.getSongDir().getAbsolutePath());
+    private final JFXTextField downloadFolderField = new JFXTextField(Database.database.getSongDir().getAbsolutePath());
     private final DirectoryChooser directoryChooser = new DirectoryChooser();
     private final JFXButton browseButton = new JFXButton("Browse");
     private JFXAlert setting;
@@ -48,13 +48,16 @@ public class OptionPopupController implements Initializable {
         settingRoot.setSpacing(20.0);
 
         makeSettingInput(maxConcurrentField,
-                "This number will determine the number of songs get download at the same time\n(Making this number too large may cause the server refuse connection)",
+                "This number will determine the number of songs get download at the same time\n" +
+                        "(Making this number too large may cause the server refuse connection)\n" +
+                        "applied after restart",
                 "Maximum Number of Concurrent Download");
         makeSettingInput(waitTimeField,
                 "Time to wait before reconnection whenever download connection failed",
                 "Wait Time (sec)");
         makeSettingInput(reconnectTimeField,
-                "Maximum number of reconnection of a single download\nDownload will be cancelled if reconnection failed times is more than this number",
+                "Maximum number of reconnection of a single download\n" +
+                        "Download will be cancelled if reconnection failed times is more than this number",
                 "Times of Reconnection");
 
         setFolderBrowser();
@@ -104,7 +107,7 @@ public class OptionPopupController implements Initializable {
         Database.getInstance().setReconnectionTimes(reconnectTime);
 
         File folder = new File(downloadFolderField.getText());
-        Database.setSongDir(folder);
+        Center.setNewSongDir(folder);
 
         // close the alert
         setting.hideWithAnimation();
@@ -126,7 +129,8 @@ public class OptionPopupController implements Initializable {
         hBox.setSpacing(10.0);
         settingRoot.getChildren().addAll(
                 new Label("Choose the folder that store the songs\n" +
-                        "(Every time you change it, the song will be copied over automatically)"),
+                        "(Every time you change it, the song will be copied over automatically)\n" +
+                        "Applied after restart"),
                 hBox
         );
     }

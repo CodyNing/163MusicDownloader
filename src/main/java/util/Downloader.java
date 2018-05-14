@@ -1,6 +1,7 @@
 package util;
 
 import com.mpatric.mp3agic.*;
+import entity.Song;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -18,7 +19,6 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 
 public class Downloader {
 
@@ -32,18 +32,16 @@ public class Downloader {
 
     private final ObservableList<Download> downloadList;
 
-    private final ExecutorService threadPool = Executors.newFixedThreadPool(Database.getInstance().getMaxConcurrentDownload(), new ThreadFactory() {
-        @Override
-        public Thread newThread(Runnable r) {
-            Thread thread = Executors.defaultThreadFactory().newThread(r);
-            thread.setDaemon(true);
-            return thread;
-        }
-    });
+    private final ExecutorService threadPool = Executors.newFixedThreadPool(Database.getInstance().getMaxConcurrentDownload(),
+            runnable -> {
+                Thread thread = Executors.defaultThreadFactory().newThread(runnable);
+                thread.setDaemon(true);
+                return thread;
+            });
 
     private Downloader() {
-        if (!Database.getSongDir().exists())
-            Database.getSongDir().mkdir();
+        if (!Database.database.getSongDir().exists())
+            Database.database.getSongDir().mkdir();
         if (!TEMP_DIR.exists())
             TEMP_DIR.mkdir();
         downloadList = FXCollections.synchronizedObservableList(FXCollections.observableList(new LinkedList<Download>()));
@@ -110,7 +108,7 @@ public class Downloader {
         id3v2Tag.setTitle(song.getTitleProperty());
         id3v2Tag.setAlbum(song.getAlbum().getName());
         id3v2Tag.setTrack(song.getTrackNo());
-        String newFileName = Database.getSongDir() + "\\" + id3v2Tag.getArtist() + " - " + id3v2Tag.getTitle() + ".mp3";
+        String newFileName = Database.database.getSongDir() + "\\" + id3v2Tag.getArtist() + " - " + id3v2Tag.getTitle() + ".mp3";
         mp3file.save(newFileName);
         fp.delete();
         Center.printToStatus(id3v2Tag.getArtist() + " - " + id3v2Tag.getTitle() + " download Complete");

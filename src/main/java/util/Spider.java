@@ -1,5 +1,9 @@
 package util;
 
+import entity.Album;
+import entity.Artist;
+import entity.Playlist;
+import entity.Song;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;

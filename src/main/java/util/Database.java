@@ -1,5 +1,9 @@
 package util;
 
+import entity.Album;
+import entity.Artist;
+import entity.Playlist;
+import entity.Song;
 import ui.Center;
 
 import java.io.*;
@@ -8,16 +12,17 @@ import java.util.Map;
 
 public class Database implements Serializable {
 
-    private static File SONG_DIR = new File("songs/");
 
     public static final File OUTPUT = new File("./database.ser");
     private static final long serialVersionUID = 500L;
 
-    private static final Database database = init();
+    public static final Database database = init();
     private final Map<String, Song> songMap = new HashMap<>();
     private final Map<String, Artist> artistMap = new HashMap<>();
     private final Map<String, Album> albumMap = new HashMap<>();
     private final Map<String, Playlist> playlistMap = new HashMap<>();
+
+    private File SONG_DIR = new File("songs/");
 
     private int maxConcurrentDownload = 5;
     private int failConnectionWaitTime = 15;
@@ -100,11 +105,11 @@ public class Database implements Serializable {
         getInstance().playlistMap.putIfAbsent(playlist.getId(), playlist);
     }
 
-    public static File getSongDir() {
+    public File getSongDir() {
         return SONG_DIR;
     }
 
-    public static void setSongDir(File songDir) {
-        // TODO set the Song Dir when no song is being download
+    public void setSongDir(File songDir) {
+        SONG_DIR = songDir;
     }
 }
