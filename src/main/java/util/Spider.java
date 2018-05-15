@@ -1,32 +1,25 @@
 package util;
 
+import entity.Album;
+import entity.Artist;
+import entity.Playlist;
+import entity.Song;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.openqa.selenium.By;
-import org.openqa.selenium.OutputType;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.phantomjs.PhantomJSDriver;
-import org.openqa.selenium.support.ui.WebDriverWait;
 
-import javafx.scene.image.Image;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+
 import ui.Center;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import javax.imageio.ImageIO;
-import javax.swing.plaf.FileChooserUI;
 
 public class Spider {
 
@@ -35,6 +28,11 @@ public class Spider {
     private static final String ALBUM_URL = "http://music.163.com/album";
     private static final String ARTIST_URL = "http://music.163.com/artist/album";
     private static final String DOWNLOADER_URL = "https://ouo.us/fm/163/";
+    private static final String SEARCH_URL = "http://music.163.com/weapi/search/get";
+    private static final String SEARCH_TYPE_SONG = "1";
+    private static final String SEARCH_TYPE_ARTIST = "100";
+    private static final String SEARCH_TYPE_ALBUM = "10";
+    private static final String SEARCH_TYPE_PLAYLIST = "1000";
 
     /* The number of albums to display in one page, set to 1000 because want all albums at once */
     private static final String DISPLAY_LIMIT = "1000";
@@ -54,11 +52,38 @@ public class Spider {
                 .header("Upgrade-Insecure-Requests", "1")
                 .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.143 Safari/537.36");
     }
+    
+    public static Connection.Response getSearchResult(String keyword, String type) throws IOException {
+        JSONObject json = SearchMusicList(keyword, type);
+        String req_str = json.toJSONString();
+        Connection.Response
+                response = Jsoup.connect(SEARCH_URL)
+                .userAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:57.0) Gecko/20100101 Firefox/57.0")
+                .header("Accept", "*/*")
+                .header("Cache-Control", "no-cache")
+                .header("Connection", "keep-alive")
+                .header("Host", "music.163.com")
+                .header("Accept-Language", "zh-CN,en-US;q=0.7,en;q=0.3")
+                .header("DNT", "1")
+                .header("Pragma", "no-cache")
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .data(EncryptUtils.encrypt(req_str))
+                .method(Connection.Method.POST)
+                .ignoreContentType(true)
+                .timeout(10000)
+                .execute();
+        return response;
+    }
+    
+    public static JSONObject SearchMusicList(String s,String type) {
+        JSONObject json = new JSONObject();
+        json.put("s", s);
+        json.put("type",type);
+        json.put("offset", 0);
+        json.put("total", "True");
+        json.put("limit", 50);
 
-    private static PhantomJSDriver get163Search(String url) {
-        PhantomJSDriver myDriver = PhantomDriver.getDriver();
-        myDriver.get(url);
-        return myDriver;
+        return json;
     }
     
     public static String getSongDownloadURL(String songID) throws IOException {
@@ -120,9 +145,7 @@ public class Spider {
         Elements eleSongList = eleListDetail.select("a[href]");
         if (eleSongList.size() == 0)
             throw new ElementNotFoundException("Unable to get playlist, id: " + playlistId);
-        eleSongList.forEach(song -> songList.add(new Song(song.attr("href").substring(9), song.text()))
-        );
-
+        eleSongList.forEach(song -> songList.add(new Song(song.attr("href").substring(9), song.text())));
 
         return new Playlist(playlistId, elePlaylistTitle.text(), songList);
     }
@@ -156,7 +179,7 @@ public class Spider {
         album = new Album(artist, eleAlbumTitle.text(), albumID, songList);
         Album finalAlbum = album;
         int trackNo = 0;
-        for(Element song : eleSongList) {
+        for (Element song : eleSongList) {
             Song temp = new Song(song.attr("href").substring(9), song.text());
             temp.setTrackNo(++trackNo + "");
             temp.setArtist(artist);
@@ -225,6 +248,8 @@ public class Spider {
             if (info == null)
                 throw new ElementNotFoundException("Unable to get song : " + song);
             Elements eleInfo = info.select("a[class=s-fc7]");
+            if (eleInfo.size() < 2)
+                return;
             Element eleArtist = eleInfo.get(0);
             Artist artist = new Artist(eleArtist.text(), eleArtist.attr("href").substring(11));
             Element eleAlbum = eleInfo.get(1);
@@ -235,24 +260,83 @@ public class Spider {
             System.err.printf("Cannot get Artist and Album from song, id: %s\n", song.getId());
         }
     }
-    
-    public static void getBody() {
-        PhantomJSDriver mydriver = (PhantomJSDriver) get163Search("https://music.163.com/#/search/m/?s=xi&type=1");
-        File myfile = mydriver.getScreenshotAs(OutputType.FILE);
-        Image img = null;
-        
-//        mydriver.getPageSource();
-//        WebDriverWait waiter = new WebDriverWait(mydriver, 20);
-//        waiter.until(driver->{
-//            WebElement element = mydriver.findElement(By.xpath("//*[@id='m-search']"));
-//            System.out.println(element.getAttribute("name"));
-//            return true;
-//        });
-    }
-    
-    public static void main(String[] args) {
-        getBody();
-    }
 
+    public static Set<Song> getSongByStringSearch(String keyword) throws IOException, ElementNotFoundException{
+        Set<Song> songSearchResult = new HashSet<>();
+        Connection.Response res = getSearchResult(keyword, SEARCH_TYPE_SONG);
+        JSONObject json = (JSONObject) JSON.parse(res.body());
+        JSONArray songjson = json.getJSONObject("result").getJSONArray("songs");
+        if(songjson.size() == 0)
+            throw new ElementNotFoundException();
+        for(int i = 0; i < songjson.size(); i++) {
+            JSONObject songinfo = songjson.getJSONObject(i);
+            JSONObject albuminfo = songinfo.getJSONObject("album");
+            JSONObject artistinfo = songinfo.getJSONArray("artists").getJSONObject(0);
+            Artist artist = new Artist(artistinfo.getString("name"), artistinfo.get("id").toString());
+            Album album =  new Album(artist, albuminfo.getString("name"), albuminfo.get("id").toString());
+            Song song = new Song(songinfo.get("id").toString(), songinfo.getString("name"), artist, album);
+            songSearchResult.add(song);
+        }
+        return songSearchResult;
+    }
+    
+    public static Set<Artist> getArtistByStringSearch(String keyword) throws IOException, ElementNotFoundException{
+        Set<Artist> artistSearchResult = new HashSet<>();
+        Connection.Response res = getSearchResult(keyword, SEARCH_TYPE_ARTIST);
+        JSONObject json = (JSONObject) JSON.parse(res.body());
+        JSONArray artistjson = json.getJSONObject("result").getJSONArray("artists");
+        if(artistjson.size() == 0)
+            throw new ElementNotFoundException();
+        for(int i = 0; i < artistjson.size(); i++) {
+            JSONObject artistinfo = artistjson.getJSONObject(i);
+            Artist artist = new Artist(artistinfo.getString("name"), artistinfo.get("id").toString());
+            artistSearchResult.add(artist);
+        }
+        return artistSearchResult;
+    }
+    
+    public static Set<Album> getAlbumByStringSearch(String keyword) throws IOException, ElementNotFoundException{
+        Set<Album> albumSearchResult = new HashSet<>();
+        Connection.Response res = getSearchResult(keyword, SEARCH_TYPE_ALBUM);
+        JSONObject json = (JSONObject) JSON.parse(res.body());
+        JSONArray albumjson = json.getJSONObject("result").getJSONArray("albums");
+        if(albumjson.size() == 0)
+            throw new ElementNotFoundException();
+        for(int i = 0; i < albumjson.size(); i++) {
+            JSONObject albuminfo = albumjson.getJSONObject(0);
+            JSONObject artistinfo = albuminfo.getJSONObject("artists");
+            Artist artist = new Artist(artistinfo.getString("name"), artistinfo.get("id").toString());
+            Album album =  new Album(artist, albuminfo.getString("name"), albuminfo.get("id").toString());
+            albumSearchResult.add(album);
+        }
+        return albumSearchResult;
+    }
+    
+    public static Set<Playlist> getPlaylistByStringSearch(String keyword) throws IOException, ElementNotFoundException{
+        Set<Playlist> playlistSearchResult = new HashSet<>();
+        Connection.Response res = getSearchResult(keyword, SEARCH_TYPE_PLAYLIST);
+        JSONObject json = (JSONObject) JSON.parse(res.body());
+        JSONArray playlistjson = json.getJSONObject("result").getJSONArray("playlists");
+        if(playlistjson.size() == 0)
+            throw new ElementNotFoundException();
+        for(int i = 0; i < playlistjson.size(); i++) {
+            JSONObject playlistinfo = playlistjson.getJSONObject(i);
+            Playlist playlist = new Playlist(playlistinfo.get("id").toString(), playlistinfo.getString("name"));
+            playlistSearchResult.add(playlist);
+        }
+        return playlistSearchResult;
+    }
+    
+//    public static void main(String[] args) {
+//        Set<Playlist> a = null; 
+//        try {
+//            a = getPlaylistByStringSearch("yoko kanno");
+//        } catch (IOException | ElementNotFoundException e) {
+//            // TODO Auto-generated catch block
+//            e.printStackTrace();
+//        }
+//        a.forEach(b -> System.out.println(b.getTitle() + " " + b.getId()));
+//    }
+//    
 }
 

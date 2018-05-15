@@ -1,6 +1,9 @@
 package ui;
 
-import com.jfoenix.controls.*;
+import com.jfoenix.controls.JFXAlert;
+import com.jfoenix.controls.JFXButton;
+import com.jfoenix.controls.JFXDialogLayout;
+import com.jfoenix.controls.JFXTextField;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -23,6 +26,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
+// TODO Migrate the Setting to a separate window (do not use JFXAlert any more)
 public class OptionPopupController implements Initializable {
 
     private VBox settingRoot;
@@ -31,9 +35,11 @@ public class OptionPopupController implements Initializable {
     private final JFXTextField waitTimeField = new JFXTextField(String.valueOf(Database.getInstance().getFailConnectionWaitTime()));
     private final JFXTextField reconnectTimeField = new JFXTextField(String.valueOf(Database.getInstance().getReconnectionTimes()));
 
-    private final JFXTextField downloadFolderField = new JFXTextField(Database.getSongDir().getAbsolutePath());
+    private final JFXTextField downloadFolderField = new JFXTextField(Database.database.getSongDir().getAbsolutePath());
     private final DirectoryChooser directoryChooser = new DirectoryChooser();
     private final JFXButton browseButton = new JFXButton("Browse");
+    private JFXAlert setting;
+    private boolean isInit = false;
 
     @PostConstruct
     @Override
@@ -42,13 +48,16 @@ public class OptionPopupController implements Initializable {
         settingRoot.setSpacing(20.0);
 
         makeSettingInput(maxConcurrentField,
-                "This number will determine the number of songs get download at the same time\n(Making this number too large may cause the server refuse connection)",
+                "This number will determine the number of songs get download at the same time\n" +
+                        "(Making this number too large may cause the server refuse connection)\n" +
+                        "applied after restart",
                 "Maximum Number of Concurrent Download");
         makeSettingInput(waitTimeField,
                 "Time to wait before reconnection whenever download connection failed",
                 "Wait Time (sec)");
         makeSettingInput(reconnectTimeField,
-                "Maximum number of reconnection of a single download\nDownload will be cancelled if reconnection failed times is more than this number",
+                "Maximum number of reconnection of a single download\n" +
+                        "Download will be cancelled if reconnection failed times is more than this number",
                 "Times of Reconnection");
 
         setFolderBrowser();
@@ -56,26 +65,30 @@ public class OptionPopupController implements Initializable {
 
     @FXML
     public void openSettings() {
-        JFXAlert setting = new JFXAlert((Stage) Center.getRootWindow());
-        setting.setSize(700, 600);
-        setting.initModality(Modality.APPLICATION_MODAL);
-        setting.setOverlayClose(false);
+        if (!isInit) {
+            setting = new JFXAlert((Stage) Center.getRootWindow());
+            setting.setSize(700, 600);
+            setting.initModality(Modality.APPLICATION_MODAL);
+            setting.setOverlayClose(false);
 
-        JFXDialogLayout layout = new JFXDialogLayout();
-        layout.setHeading(new Label("Setting"));
+            JFXDialogLayout layout = new JFXDialogLayout();
+            layout.setHeading(new Label("Setting"));
 
-        layout.setBody(settingRoot);
+            layout.setBody(settingRoot);
 
-        JFXButton acceptButton = new JFXButton("SAVE");
-        acceptButton.getStyleClass().add("dialog-accept");
-        acceptButton.setOnAction(event -> saveSetting(setting));
+            JFXButton acceptButton = new JFXButton("SAVE");
+            acceptButton.getStyleClass().add("dialog-accept");
+            acceptButton.setOnAction(event -> saveSetting(setting));
 
-        JFXButton closeButton = new JFXButton("CANCEL");
-        closeButton.setOnAction(event -> setting.hideWithAnimation());
+            JFXButton closeButton = new JFXButton("CANCEL");
+            closeButton.setOnAction(event -> setting.hideWithAnimation());
 
-        layout.setActions(acceptButton, closeButton);
+            layout.setActions(acceptButton, closeButton);
 
-        setting.setContent(layout);
+            setting.setContent(layout);
+
+            isInit = true;
+        }
         setting.show();
     }
 
@@ -94,7 +107,7 @@ public class OptionPopupController implements Initializable {
         Database.getInstance().setReconnectionTimes(reconnectTime);
 
         File folder = new File(downloadFolderField.getText());
-        Database.setSongDir(folder);
+        Center.setNewSongDir(folder);
 
         // close the alert
         setting.hideWithAnimation();
@@ -105,7 +118,7 @@ public class OptionPopupController implements Initializable {
             directoryChooser.setTitle("Choose Download Folder");
             File dir = directoryChooser.showDialog(Center.getRootWindow());
             if (dir != null)
-            	downloadFolderField.setText(dir.getAbsolutePath());
+                downloadFolderField.setText(dir.getAbsolutePath());
         });
         browseButton.setStyle("-fx-text-fill:WHITE;-fx-background-color:#5264AE;-fx-font-size:14px;");
         downloadFolderField.setPromptText("Download Folder");
@@ -116,7 +129,8 @@ public class OptionPopupController implements Initializable {
         hBox.setSpacing(10.0);
         settingRoot.getChildren().addAll(
                 new Label("Choose the folder that store the songs\n" +
-                        "(Every time you change it, the song will be copied over automatically)"),
+                        "(Every time you change it, the song will be copied over automatically)\n" +
+                        "Applied after restart"),
                 hBox
         );
     }
@@ -148,10 +162,6 @@ public class OptionPopupController implements Initializable {
         textField.setLabelFloat(true);
 
         settingRoot.getChildren().addAll(promptLabel, textField);
-    }
-
-    private void makeSettingToggle(JFXToggleButton toggleButton, String promptText) {
-
     }
 
 }

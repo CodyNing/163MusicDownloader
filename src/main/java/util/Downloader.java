@@ -1,9 +1,9 @@
 package util;
 
 import com.mpatric.mp3agic.*;
+import entity.Song;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import ui.Center;
@@ -17,6 +17,8 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Downloader {
 
@@ -30,16 +32,20 @@ public class Downloader {
 
     private final ObservableList<Download> downloadList;
 
+    private final ExecutorService threadPool = Executors.newFixedThreadPool(Database.getInstance().getMaxConcurrentDownload(),
+            runnable -> {
+                Thread thread = Executors.defaultThreadFactory().newThread(runnable);
+                thread.setDaemon(true);
+                return thread;
+            });
+
     private Downloader() {
-        if (!Database.getSongDir().exists())
-            Database.getSongDir().mkdir();
+        if (!Database.database.getSongDir().exists())
+            Database.database.getSongDir().mkdir();
         if (!TEMP_DIR.exists())
             TEMP_DIR.mkdir();
         downloadList = FXCollections.synchronizedObservableList(FXCollections.observableList(new LinkedList<Download>()));
-        downloadList.addListener((ListChangeListener<Download>) c -> Center.updateListStatus());
     }
-
-    private int currentDownloading = 0;
 
     public static String makeStringValidForWindowsFile(String str) {
         return str
@@ -61,18 +67,8 @@ public class Downloader {
     private synchronized void addDownload(Download download) {
         Platform.runLater(() -> {
             downloadList.add(download);
-            startHeadDownload();
+            threadPool.execute(download);
         });
-    }
-
-    private synchronized void startHeadDownload() {
-        if (isAllowedToDownload() && downloadList.size() > currentDownloading) {
-            Thread thread = new Thread(downloadList.get(currentDownloading));
-            thread.setDaemon(true);
-            thread.start();
-            currentDownloading += 1;
-            Center.updateListStatus();
-        }
     }
 
     /**
@@ -84,10 +80,10 @@ public class Downloader {
     public void downloadSong(Song song, File dir) {
         song.setArtistAndAlbum();
         if (song.exists()) {
-            Center.printToStatus("Song: " + song.getTitle() + ", already downloaded");
+            Center.printToStatus("Song: " + song.getTitleProperty() + ", already downloaded");
             return;
         }
-        File file = new File(dir, song.getArtist().getName() + " - " + song.getTitle() + "_temp.mp3");
+        File file = new File(dir, song.getArtist().getName() + " - " + song.getTitleProperty() + "_temp.mp3");
         Download download = new Download(file, song);
         addDownload(download);
     }
@@ -109,29 +105,17 @@ public class Downloader {
             mp3file.setId3v2Tag(id3v2Tag);
         }
         id3v2Tag.setArtist(song.getArtist().getName());
-        id3v2Tag.setTitle(song.getTitle());
+        id3v2Tag.setTitle(song.getTitleProperty());
         id3v2Tag.setAlbum(song.getAlbum().getName());
         id3v2Tag.setTrack(song.getTrackNo());
-        String newFileName = Database.getSongDir() + "\\" + id3v2Tag.getArtist() + " - " + id3v2Tag.getTitle() + ".mp3";
+        String newFileName = Database.database.getSongDir() + "\\" + id3v2Tag.getArtist() + " - " + id3v2Tag.getTitle() + ".mp3";
         mp3file.save(newFileName);
         fp.delete();
         Center.printToStatus(id3v2Tag.getArtist() + " - " + id3v2Tag.getTitle() + " download Complete");
     }
 
-    private boolean isAllowedToDownload() {
-        return currentDownloading < Database.getInstance().getMaxConcurrentDownload();
-    }
-
     public ObservableList<Download> getDownloadList() {
         return downloadList;
-    }
-
-    public int getCurrentDownloading() {
-        return currentDownloading;
-    }
-
-    public boolean hasTask() {
-        return downloadList.size() != 0;
     }
 
     public class Download extends Task<Void> {
@@ -143,9 +127,7 @@ public class Downloader {
             this.song = song;
             this.outputFile = outputFile;
             this.setOnSucceeded(event -> {
-                currentDownloading -= 1;
                 downloadList.remove(this);
-                startHeadDownload();
                 try {
                     setTag(song, outputFile);
                 } catch (InvalidDataException | UnsupportedTagException | NotSupportedException e) {
@@ -159,7 +141,7 @@ public class Downloader {
         private void download() throws MalformedURLException {
             song.setDownloadURL();
             if (song.getDownloadURL() == null) {
-                Center.printToStatus("Unable to get URL for song " + song.getTitle() + ", append task at the end of download list.");
+                Center.printToStatus("Unable to get URL for song " + song.getTitleProperty() + ", append task at the end of download list.");
                 addDownload(new Download(outputFile, song));
                 return;
             }
@@ -185,7 +167,11 @@ public class Downloader {
 
         @Override
         public String toString() {
-            return song.getArtist().getName() + " - " + song.getTitle() + (this.isRunning() ? " - Downloading" : " - Pending");
+            return song.getArtist().getName() + " - " + song.getTitleProperty() + " - " + getStatus();
+        }
+
+        public String getStatus() {
+            return (this.isRunning() ? "Downloading" : "Pending");
         }
 
         @Override
@@ -201,13 +187,15 @@ public class Downloader {
         public void cancelDownload() {
             downloadList.remove(this);
             if (this.getState() == State.RUNNING) {
-                currentDownloading -= 1;
-                startHeadDownload();
                 if (outputFile.exists())
                     outputFile.delete();
             }
             this.cancel();
-            Center.printToStatus("Cancelled download song: " + song.getTitle());
+            Center.printToStatus("Cancelled download song: " + song.getTitleProperty());
+        }
+
+        public Song getSong() {
+            return song;
         }
     }
 

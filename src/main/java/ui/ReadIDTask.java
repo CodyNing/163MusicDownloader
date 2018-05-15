@@ -5,9 +5,9 @@ import javafx.concurrent.Task;
 class ReadIDTask extends Task<Void> {
 
     private final String id;
-    private final DownloadEvent event;
+    private final RunnableEvent event;
 
-    public ReadIDTask(String id, DownloadEvent event) {
+    public ReadIDTask(String id, RunnableEvent event) {
         this.id = id;
         this.event = event;
     }

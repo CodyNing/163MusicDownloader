@@ -10,10 +10,10 @@
     <padding>
         <Insets top="5.0" bottom="5.0"/>
     </padding>
-    <JFXButton text="Playlist" onAction="#downloadPlaylist" prefWidth="Infinity"></JFXButton>
-    <JFXButton text="Single Song" onAction="#downloadSong" prefWidth="Infinity"></JFXButton>
-    <JFXButton text="Album" onAction="#downloadAlbum" prefWidth="Infinity"></JFXButton>
-    <JFXButton text="All Songs of an Artist" onAction="#downloadArtist" prefWidth="Infinity"></JFXButton>
+    <JFXButton text="Playlist" onAction="#downloadPlaylist" prefWidth="Infinity"/>
+    <JFXButton text="Single Song" onAction="#downloadSong" prefWidth="Infinity"/>
+    <JFXButton text="Album" onAction="#downloadAlbum" prefWidth="Infinity"/>
+    <JFXButton text="All Songs of an Artist" onAction="#downloadArtist" prefWidth="Infinity"/>
     <Separator orientation="HORIZONTAL"/>
-    <JFXButton text="Open Songs Folder" onAction="#openSongsFolder" prefWidth="Infinity"></JFXButton>
+    <JFXButton text="Open Songs Folder" onAction="#openSongsFolder" prefWidth="Infinity"/>
 </VBox>

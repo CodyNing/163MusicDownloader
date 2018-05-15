@@ -1,12 +1,14 @@
-package util;
+package entity;
 
-import util.Album;
+import util.Database;
 
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
-public class Artist implements Serializable {
+import com.jfoenix.controls.datamodels.treetable.RecursiveTreeObject;
+
+public class Artist extends RecursiveTreeObject<Artist> implements Serializable {
 
     private static final long serialVersionUID = 502L;
 

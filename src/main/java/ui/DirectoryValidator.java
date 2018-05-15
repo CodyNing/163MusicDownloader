@@ -2,6 +2,8 @@ package ui;
 
 import java.io.File;
 
+import static util.Downloader.TEMP_DIR;
+
 public class DirectoryValidator extends ValidatorBaseAdvanced {
 
     public DirectoryValidator(String message) {
@@ -10,7 +12,8 @@ public class DirectoryValidator extends ValidatorBaseAdvanced {
 
     @Override
     boolean valid(String text) {
-        return new File(text).isDirectory();
+        File file = new File(text);
+        return file != TEMP_DIR && file.isDirectory();
     }
 
 }

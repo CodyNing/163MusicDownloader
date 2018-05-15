@@ -1,12 +1,18 @@
-package util;
+package entity;
 
 import ui.Center;
+import util.Database;
+import util.Downloader;
+import util.ElementNotFoundException;
+import util.Spider;
 
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Set;
 
-public class Playlist implements Serializable {
+import com.jfoenix.controls.datamodels.treetable.RecursiveTreeObject;
+
+public class Playlist extends RecursiveTreeObject<Playlist> implements Serializable {
 
     private static final long serialVersionUID = 504L;
 
@@ -48,4 +54,7 @@ public class Playlist implements Serializable {
     }
 
 
+    public int size() {
+        return songList.size();
+    }
 }
