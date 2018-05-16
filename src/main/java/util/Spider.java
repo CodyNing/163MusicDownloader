@@ -5,6 +5,8 @@ import entity.Artist;
 import entity.Playlist;
 import entity.Song;
 import org.jsoup.Connection;
+import org.jsoup.Connection.Method;
+import org.jsoup.Connection.Response;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -25,10 +27,10 @@ import java.util.regex.Pattern;
 
 public class Spider {
 
-    private static final String PLAYLIST_URL = "http://music.163.com/playlist";
-    private static final String SONG_URL = "http://music.163.com/song";
-    private static final String ALBUM_URL = "http://music.163.com/album";
-    private static final String ARTIST_URL = "http://music.163.com/artist/album";
+    private static final String PLAYLIST_URL = "http://music.163.com/api/playlist/detail?id=";
+    private static final String SONG_URL = "http://music.163.com/weapi/v3/song/detail";
+    private static final String ALBUM_URL = "http://music.163.com/weapi/v1/album/";
+    private static final String ARTIST_URL = "http://music.163.com/weapi/artist/albums/";
     private static final String DOWNLOADER_URL = "https://ouo.us/fm/163/";
     private static final String SEARCH_URL = "http://music.163.com/weapi/search/get";
     private static final String SEARCH_TYPE_SONG = "1";
@@ -55,25 +57,20 @@ public class Spider {
                 .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.143 Safari/537.36");
     }
     
-    public static Connection.Response getSearchResult(String keyword, String type) throws IOException {
-        JSONObject json = SearchMusicList(keyword, type);
-        String req_str = json.toJSONString();
-        Connection.Response
-                response = Jsoup.connect(SEARCH_URL)
-                .userAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:57.0) Gecko/20100101 Firefox/57.0")
-                .header("Accept", "*/*")
-                .header("Cache-Control", "no-cache")
-                .header("Connection", "keep-alive")
-                .header("Host", "music.163.com")
-                .header("Accept-Language", "zh-CN,en-US;q=0.7,en;q=0.3")
-                .header("DNT", "1")
-                .header("Pragma", "no-cache")
-                .header("Content-Type", "application/x-www-form-urlencoded")
-                .data(EncryptUtils.encrypt(req_str))
-                .method(Connection.Method.POST)
-                .ignoreContentType(true)
-                .timeout(10000)
-                .execute();
+    private static Response getApiResponse(String url, Connection.Method contype, JSONObject data) throws IOException {
+        Response response = Jsoup.connect(url)
+            .userAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:57.0) Gecko/20100101 Firefox/57.0")
+            .header("Accept", "*/*")
+            .header("Referer", "http://music.163.com")
+            .header("Connection", "keep-alive")
+            .header("Host", "music.163.com")
+            .header("Accept-Language", "zh-CN,en-US;q=0.7,en;q=0.3")
+            .header("Content-Type", "application/x-www-form-urlencoded")
+            .data(EncryptUtils.encrypt(data.toJSONString()))
+            .method(contype)
+            .ignoreContentType(true)
+            .timeout(10000)
+            .execute();
         return response;
     }
     
@@ -100,15 +97,31 @@ public class Spider {
         return response.header("location");
     }
     
-    public static JSONObject SearchMusicList(String s,String type) {
+    public static Response getSearchResult(String keyword, String type) throws IOException {
         JSONObject json = new JSONObject();
-        json.put("s", s);
+        json.put("s", keyword);
         json.put("type",type);
         json.put("offset", 0);
         json.put("total", "True");
         json.put("limit", 50);
-
-        return json;
+//        String req_str = json.toJSONString();
+//        Connection.Response
+//                response = Jsoup.connect(SEARCH_URL)
+//                .userAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:57.0) Gecko/20100101 Firefox/57.0")
+//                .header("Accept", "*/*")
+//                .header("Cache-Control", "no-cache")
+//                .header("Connection", "keep-alive")
+//                .header("Host", "music.163.com")
+//                .header("Accept-Language", "zh-CN,en-US;q=0.7,en;q=0.3")
+//                .header("DNT", "1")
+//                .header("Pragma", "no-cache")
+//                .header("Content-Type", "application/x-www-form-urlencoded")
+//                .data(EncryptUtils.encrypt(req_str))
+//                .method(Connection.Method.POST)
+//                .ignoreContentType(true)
+//                .timeout(10000)
+//                .execute();
+        return getApiResponse(SEARCH_URL, Connection.Method.POST, json);
     }
     
     public static String getSongDownloadURL(String songID) throws IOException {
@@ -116,7 +129,6 @@ public class Spider {
                 .data("id", songID)
                 .get().body();
         String url = getDLURLfromHeader(body.select("a[class=button]").get(1).attr("href"), songID);
-        System.out.println(url);
         return url;
     }
 
@@ -135,19 +147,23 @@ public class Spider {
             return playlist.getSongList();
 
         Set<Song> songIDList = new HashSet<>();
-
-        Element body = get163Connection(PLAYLIST_URL)
-                .data("id", playlistId)
-                .get().body();
-
-        Element eleListDetail = body.selectFirst("ul[class=f-hide]");
-        if (eleListDetail == null)
-            throw new ElementNotFoundException("invalid playlist id, id: " + playlistId);
-        Elements eleSongList = eleListDetail.select("a[href]");
-        if (eleSongList.size() == 0)
-            throw new ElementNotFoundException("Unable to get playlist, id: " + playlistId);
-        eleSongList.forEach(song -> songIDList.add(new Song(song.attr("href").substring(9), song.text()))
-        );
+        JSONObject data = new JSONObject();
+        data.put("id", playlistId);
+        data.put("n", "100000");
+        data.put("csfn_token", "");
+        JSONObject json = JSON.parseObject(getApiResponse(PLAYLIST_URL, Method.POST, data).body());
+//        Element body = get163Connection(PLAYLIST_URL)
+//                .data("id", playlistId)
+//                .get().body();
+//
+//        Element eleListDetail = body.selectFirst("ul[class=f-hide]");
+//        if (eleListDetail == null)
+//            throw new ElementNotFoundException("invalid playlist id, id: " + playlistId);
+//        Elements eleSongList = eleListDetail.select("a[href]");
+//        if (eleSongList.size() == 0)
+//            throw new ElementNotFoundException("Unable to get playlist, id: " + playlistId);
+//        eleSongList.forEach(song -> songIDList.add(new Song(song.attr("href").substring(9), song.text()))
+//        );
 
         return songIDList;
     }
@@ -353,12 +369,22 @@ public class Spider {
         return playlistSearchResult;
     }
     
-//    public static void main(String[] args) {
-//        String url = "//up.yiw.cc/fm/163music.php?id=489970814&c=16kmu1tY4Fcyc";
-//        String regex = "\\&c=(\\w*)";
-//        Pattern pattern = Pattern.compile(regex);
-//        Matcher matcher = pattern.matcher(url);
-//    }
+    public static void main(String[] args) {
+        JSONObject data = new JSONObject();
+//        data.put("offset", "0");
+//        data.put("total", "true");
+//        data.put("limit", "1000");
+        data.put("ids", "[528116240]");
+//        data.put("c", "[{id : 528116240}]");
+        data.put("csfn_token", "");
+        data.put("br", "999000");
+        try {
+            System.out.println(getApiResponse("http://music.163.com/weapi/song/enhance/player/url", Connection.Method.POST, data).body());
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
     
 }
 
