@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Spider {
 
@@ -75,14 +77,23 @@ public class Spider {
         return response;
     }
     
-    public static String getDLURLfromHeader(String URL) throws IOException {
+    public static String getDLURLfromHeader(String url, String id) throws IOException {
+        System.out.println(url + " " + id);
+        String regex = "\\&c=(\\w*)";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(url);
+        String c = null;
+        if (matcher.find())
+            c = matcher.group(1);
+        else
+            throw new IOException();
         Connection.Response
                 response = Jsoup.connect("https://up.yiw.cc/fm/163music.php")
                 .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.139 Safari/537.36")
                 .header("X-DevTools-Emulate-Network-Conditions-Client-Id", "50ED8223EED918DD6579B892A1DE1E2A")
-                .data("id", "489970818")
-                .data("c", "16kmu1tY4Fcyc")
                 .method(Connection.Method.GET)
+                .data("id", id)
+                .data("c", c)
                 .followRedirects(false)
                 .timeout(10000)
                 .execute();
@@ -104,7 +115,9 @@ public class Spider {
         Element body = get163Connection(DOWNLOADER_URL)
                 .data("id", songID)
                 .get().body();
-        return getDLURLfromHeader(body.select("a[class=button]").get(1).attr("href"));
+        String url = getDLURLfromHeader(body.select("a[class=button]").get(1).attr("href"), songID);
+        System.out.println(url);
+        return url;
     }
 
     public static List<Song> getSongs(List<String> songIDList) throws IOException, ElementNotFoundException {
@@ -341,12 +354,10 @@ public class Spider {
     }
     
 //    public static void main(String[] args) {
-//        try {
-//            getsth();
-//        } catch (IOException e) {
-//            // TODO Auto-generated catch block
-//            e.printStackTrace();
-//        }
+//        String url = "//up.yiw.cc/fm/163music.php?id=489970814&c=16kmu1tY4Fcyc";
+//        String regex = "\\&c=(\\w*)";
+//        Pattern pattern = Pattern.compile(regex);
+//        Matcher matcher = pattern.matcher(url);
 //    }
     
 }
