@@ -75,6 +75,20 @@ public class Spider {
         return response;
     }
     
+    public static String getDLURLfromHeader(String URL) throws IOException {
+        Connection.Response
+                response = Jsoup.connect("https://up.yiw.cc/fm/163music.php")
+                .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.139 Safari/537.36")
+                .header("X-DevTools-Emulate-Network-Conditions-Client-Id", "50ED8223EED918DD6579B892A1DE1E2A")
+                .data("id", "489970818")
+                .data("c", "16kmu1tY4Fcyc")
+                .method(Connection.Method.GET)
+                .followRedirects(false)
+                .timeout(10000)
+                .execute();
+        return response.header("location");
+    }
+    
     public static JSONObject SearchMusicList(String s,String type) {
         JSONObject json = new JSONObject();
         json.put("s", s);
@@ -90,8 +104,7 @@ public class Spider {
         Element body = get163Connection(DOWNLOADER_URL)
                 .data("id", songID)
                 .get().body();
-
-        return body.select("a[class=button]").get(1).attr("href");
+        return getDLURLfromHeader(body.select("a[class=button]").get(1).attr("href"));
     }
 
     public static List<Song> getSongs(List<String> songIDList) throws IOException, ElementNotFoundException {
@@ -328,15 +341,13 @@ public class Spider {
     }
     
 //    public static void main(String[] args) {
-//        Set<Playlist> a = null; 
 //        try {
-//            a = getPlaylistByStringSearch("yoko kanno");
-//        } catch (IOException | ElementNotFoundException e) {
+//            getsth();
+//        } catch (IOException e) {
 //            // TODO Auto-generated catch block
 //            e.printStackTrace();
 //        }
-//        a.forEach(b -> System.out.println(b.getTitle() + " " + b.getId()));
 //    }
-//    
+    
 }
 
