@@ -18,6 +18,7 @@ import com.alibaba.fastjson.JSONObject;
 import ui.Center;
 
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -76,25 +77,28 @@ public class Spider {
     
     public static String getDLURLfromHeader(String url, String id) throws IOException {
         System.out.println(url + " " + id);
-        String regex = "\\&c=(\\w*)";
-        Pattern pattern = Pattern.compile(regex);
-        Matcher matcher = pattern.matcher(url);
-        String c = null;
-        if (matcher.find())
-            c = matcher.group(1);
-        else
-            throw new IOException();
+//        String regex = "\\&c=(.*)";
+//        Pattern pattern = Pattern.compile(regex);
+//        Matcher matcher = pattern.matcher(url);
+//        String c = null;
+//        if (matcher.find())
+//            c = matcher.group(1);
+//        else
+//            throw new IOException();
+//        c = URLDecoder.decode(c, "UTF-8");
         Connection.Response
-                response = Jsoup.connect("https://up.yiw.cc/fm/163music.php")
+                response = Jsoup.connect("http:" + url)
                 .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.139 Safari/537.36")
                 .header("X-DevTools-Emulate-Network-Conditions-Client-Id", "50ED8223EED918DD6579B892A1DE1E2A")
                 .method(Connection.Method.GET)
-                .data("id", id)
-                .data("c", c)
+//                .data("id", id)
+//                .data("c", c)
                 .followRedirects(false)
                 .timeout(10000)
                 .execute();
-        return response.header("location");
+        String dlurl = response.header("location");
+        System.out.println(dlurl);
+        return dlurl;
     }
     
     public static Response getSearchResult(String keyword, String type) throws IOException {
@@ -104,23 +108,7 @@ public class Spider {
         json.put("offset", 0);
         json.put("total", "True");
         json.put("limit", 50);
-//        String req_str = json.toJSONString();
-//        Connection.Response
-//                response = Jsoup.connect(SEARCH_URL)
-//                .userAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:57.0) Gecko/20100101 Firefox/57.0")
-//                .header("Accept", "*/*")
-//                .header("Cache-Control", "no-cache")
-//                .header("Connection", "keep-alive")
-//                .header("Host", "music.163.com")
-//                .header("Accept-Language", "zh-CN,en-US;q=0.7,en;q=0.3")
-//                .header("DNT", "1")
-//                .header("Pragma", "no-cache")
-//                .header("Content-Type", "application/x-www-form-urlencoded")
-//                .data(EncryptUtils.encrypt(req_str))
-//                .method(Connection.Method.POST)
-//                .ignoreContentType(true)
-//                .timeout(10000)
-//                .execute();
+        
         return getApiResponse(SEARCH_URL, Connection.Method.POST, json);
     }
     
@@ -151,19 +139,14 @@ public class Spider {
         data.put("id", playlistId);
         data.put("n", "100000");
         data.put("csfn_token", "");
-        JSONObject json = JSON.parseObject(getApiResponse(PLAYLIST_URL, Method.POST, data).body());
-//        Element body = get163Connection(PLAYLIST_URL)
-//                .data("id", playlistId)
-//                .get().body();
-//
-//        Element eleListDetail = body.selectFirst("ul[class=f-hide]");
-//        if (eleListDetail == null)
-//            throw new ElementNotFoundException("invalid playlist id, id: " + playlistId);
-//        Elements eleSongList = eleListDetail.select("a[href]");
-//        if (eleSongList.size() == 0)
-//            throw new ElementNotFoundException("Unable to get playlist, id: " + playlistId);
-//        eleSongList.forEach(song -> songIDList.add(new Song(song.attr("href").substring(9), song.text()))
-//        );
+        JSONObject json = JSON.parseObject(getApiResponse(PLAYLIST_URL + playlistId, Method.POST, data).body());
+        if((int)json.get("code") != 200)
+            throw new ElementNotFoundException("cannot find playlist title, id: " + playlistId);
+        JSONArray songlist = json.getJSONObject("result").getJSONArray("tracks");
+        for(int i = 0; i < songlist.size(); i++) {
+            JSONObject song = songlist.getJSONObject(i);
+            songIDList.add(new Song(song.get("id").toString(), song.getString("name")));
+        }
 
         return songIDList;
     }
@@ -173,61 +156,43 @@ public class Spider {
         if ((playlist = Database.getPlaylist(playlistId)) != null)
             return playlist;
 
-        Set<Song> songList = new HashSet<>();
-        Element body = get163Connection(PLAYLIST_URL)
-                .data("id", playlistId)
-                .get().body();
-
-        Element elePlaylistTitle = body.selectFirst("h2[class=f-ff2 f-brk]");
-        if (elePlaylistTitle == null)
+        Set<Song> songIDList = new HashSet<>();
+        JSONObject data = new JSONObject();
+        data.put("id", playlistId);
+        data.put("n", "100000");
+        data.put("csfn_token", "");
+        JSONObject json = JSON.parseObject(getApiResponse(PLAYLIST_URL + playlistId, Method.POST, data).body());
+        if((int)json.get("code") != 200)
             throw new ElementNotFoundException("cannot find playlist title, id: " + playlistId);
-        Element eleListDetail = body.selectFirst("ul[class=f-hide]");
-        if (eleListDetail == null)
-            throw new ElementNotFoundException("invalid playlist id, id: " + playlistId);
-        Elements eleSongList = eleListDetail.select("a[href]");
-        if (eleSongList.size() == 0)
-            throw new ElementNotFoundException("Unable to get playlist, id: " + playlistId);
-        eleSongList.forEach(song -> songList.add(new Song(song.attr("href").substring(9), song.text())));
+        JSONArray songlist = json.getJSONObject("result").getJSONArray("tracks");
+        for(int i = 0; i < songlist.size(); i++) {
+            JSONObject song = songlist.getJSONObject(i);
+            songIDList.add(new Song(song.get("id").toString(), song.getString("name")));
+        }
 
-        return new Playlist(playlistId, elePlaylistTitle.text(), songList);
+        return new Playlist(playlistId, json.getString("name"), songIDList);
     }
 
     public static Album getAlbumByID(String albumID) throws IOException, ElementNotFoundException {
         Album album;
-        if ((album = Database.getAlbum(albumID)) != null)
-            return album;
+//        if ((album = Database.getAlbum(albumID)) != null)
+//            return album;
 
-        Set<Song> songList = new HashSet<>();
-        Element body = get163Connection(ALBUM_URL)
-                .data("id", albumID)
-                .get().body();
-
-        Element eleAlbumTitle = body.selectFirst("div[class=tit]").selectFirst("h2[class=f-ff2]");
-        if (eleAlbumTitle == null)
+        JSONObject data = new JSONObject();
+        data.put("csfn_token", "");
+        JSONObject json = JSON.parseObject(getApiResponse(ALBUM_URL + albumID, Method.POST, data).body());
+        if((int)json.get("code") != 200)
             throw new ElementNotFoundException("cannot find album title, id: " + albumID);
-
-        Element eleArtist = body.selectFirst("p[class=intr]").selectFirst("a[class=s-fc7]");
-        if (eleArtist == null)
-            throw new ElementNotFoundException("cannot find artist, id: " + albumID);
-        Artist artist = new Artist(eleArtist.text(), eleArtist.attr("href").substring(11));
-
-        Element eleListDetail = body.selectFirst("ul[class=f-hide]");
-        if (eleListDetail == null)
-            throw new ElementNotFoundException("invalid playlist id, id: " + albumID);
-        Elements eleSongList = eleListDetail.select("a[href]");
-        if (eleSongList.size() == 0)
-            throw new ElementNotFoundException("Unable to get playlist, id: " + albumID);
-
-        album = new Album(artist, eleAlbumTitle.text(), albumID, songList);
-        Album finalAlbum = album;
-        int trackNo = 0;
-        for (Element song : eleSongList) {
-            Song temp = new Song(song.attr("href").substring(9), song.text());
-            temp.setTrackNo(++trackNo + "");
-            temp.setArtist(artist);
-            temp.setAlbum(finalAlbum);
-            songList.add(temp);
+        JSONObject jsonALbum = json.getJSONObject("album");
+        JSONObject jsonArtist = jsonALbum.getJSONObject("artist");
+        JSONArray jsonSong = json.getJSONArray("songs");
+        Artist artist = new Artist(jsonArtist.getString("name"), jsonArtist.get("id").toString());
+        album = new Album(artist, jsonALbum.getString("name"), albumID);
+        for(int i = 0; i < jsonSong.size(); i++) {
+            JSONObject song = jsonSong.getJSONObject(i);
+            album.addSong(new Song(song.get("id").toString(), song.getString("name"), song.get("no").toString(), artist, album));
         }
+
         return album;
     }
 
@@ -235,72 +200,60 @@ public class Spider {
         Song song;
         if ((song = Database.getSong(songId)) != null)
             return song;
-
-        Element body = get163Connection(SONG_URL)
-                .data("id", songId)
-                .get().body();
-
-        Element info = body.selectFirst("div[class=cnt]");
-        if (info == null)
+        JSONObject data = new JSONObject();
+        data.put("ids", "[" + songId + "]");
+        data.put("c", "[{id :" + songId + "}]");
+        data.put("csfn_token", "");
+        JSONObject json = JSON.parseObject(getApiResponse(SONG_URL, Method.POST, data).body());
+        JSONObject songjson = json.getJSONArray("songs").getJSONObject(0);
+        JSONObject artistjson = songjson.getJSONArray("ar").getJSONObject(0);
+        JSONObject albumjson = songjson.getJSONObject("al");
+        if((int)json.get("code") != 200)
             throw new ElementNotFoundException("Unable to get song, id: " + songId);
-        String songTitle = info.selectFirst("em[class=f-ff2]").text();
-        Elements eleInfo = info.select("a[class=s-fc7]");
-        Element eleArtist = eleInfo.get(0);
-        Artist artist = new Artist(eleArtist.text(), eleArtist.attr("href").substring(11));
-        Element eleAlbum = eleInfo.get(1);
-        Album album = new Album(artist, eleAlbum.text(), eleAlbum.attr("href").substring(10));
-
-        return new Song(songId, songTitle, artist, album);
+        Artist artist = new Artist(artistjson.getString("name"), artistjson.get("id").toString());
+        Album album = new Album(artist, albumjson.getString("name"), albumjson.get("id").toString());
+        
+        return new Song(songId, songjson.getString("name"), artist, album);
     }
 
     public static Artist getArtistByID(String artistID) throws IOException, ElementNotFoundException {
         Artist artist;
-        Element body = get163Connection(ARTIST_URL)
-                .data("id", artistID)
-                .data("limit", DISPLAY_LIMIT)
-                .get().body();
-
-        Element artistName = body.selectFirst("h2[id=artist-name]");
-        if (artistName == null)
+//        if ((artist = Database.getArtist(artistID)) != null)
+//            return artist;
+        
+        JSONObject data = new JSONObject();
+        data.put("offset", 0);
+        data.put("total", "True");
+        data.put("limit", DISPLAY_LIMIT);
+        data.put("csfn_token", "");
+        JSONObject json = JSON.parseObject(getApiResponse(ARTIST_URL + artistID, Method.POST, data).body());
+        if((int)json.get("code") != 200)
             throw new ElementNotFoundException("Unable to get artist, id: " + artistID);
-
         Set<Album> albumSet = new HashSet<>();
-        Elements eleInfo = body.selectFirst("ul[class=m-cvrlst m-cvrlst-alb4 f-cb]").select("a[class=icon-play f-alpha]");
-        if (eleInfo == null)
-            throw new ElementNotFoundException("Unable to get albums, id: " + artistID);
-        for (Element e : eleInfo) {
-            String albumID = e.attr("data-res-id");
-            albumSet.add(getAlbumByID(albumID));
+        JSONArray albumjson = json.getJSONArray("hotAlbums");
+        for(int i = 0; i < albumjson.size(); i++) {
+            albumSet.add(getAlbumByID(albumjson.getJSONObject(i).get("id").toString()));
         }
-
-        artist = new Artist(artistName.text(), artistID, albumSet);
-
-        Center.printToStatus("retrieved data for artist " + artist.getName());
+        artist = new Artist(json.getJSONObject("artist").getString("name"), artistID, albumSet);
 
         return artist;
     }
 
-    public static void setArtistAndAlbum(Song song) throws ElementNotFoundException {
-        try {
-            Element body = get163Connection(SONG_URL)
-                    .data("id", song.getId())
-                    .get().body();
-
-            Element info = body.selectFirst("div[class=cnt]");
-            if (info == null)
-                throw new ElementNotFoundException("Unable to get song : " + song);
-            Elements eleInfo = info.select("a[class=s-fc7]");
-            if (eleInfo.size() < 2)
-                return;
-            Element eleArtist = eleInfo.get(0);
-            Artist artist = new Artist(eleArtist.text(), eleArtist.attr("href").substring(11));
-            Element eleAlbum = eleInfo.get(1);
-            Album album = new Album(artist, eleAlbum.text(), eleAlbum.attr("href").substring(10));
-            song.setArtist(artist);
-            song.setAlbum(album);
-        } catch (IOException e) {
-            System.err.printf("Cannot get Artist and Album from song, id: %s\n", song.getId());
-        }
+    public static void setArtistAndAlbum(Song song) throws ElementNotFoundException, IOException {
+        JSONObject data = new JSONObject();
+        data.put("ids", "[" + song.getId() + "]");
+        data.put("c", "[{id :" + song.getId() + "}]");
+        data.put("csfn_token", "");
+        JSONObject json = JSON.parseObject(getApiResponse(SONG_URL, Method.POST, data).body());
+        JSONObject songjson = json.getJSONArray("songs").getJSONObject(0);
+        JSONObject artistjson = songjson.getJSONArray("ar").getJSONObject(0);
+        JSONObject albumjson = songjson.getJSONObject("al");
+        if((int)json.get("code") != 200)
+            throw new ElementNotFoundException("Unable to get song, id: " + song.getId());
+        Artist artist = new Artist(artistjson.getString("name"), artistjson.get("id").toString());
+        Album album = new Album(artist, albumjson.getString("name"), albumjson.get("id").toString());
+        song.setAlbum(album);
+        song.setArtist(artist);
     }
 
     public static Set<Song> getSongByStringSearch(String keyword) throws IOException, ElementNotFoundException{
@@ -369,22 +322,22 @@ public class Spider {
         return playlistSearchResult;
     }
     
-    public static void main(String[] args) {
-        JSONObject data = new JSONObject();
-//        data.put("offset", "0");
-//        data.put("total", "true");
-//        data.put("limit", "1000");
-        data.put("ids", "[528116240]");
+//    public static void main(String[] args) {
+//        JSONObject data = new JSONObject();
+////        data.put("offset", "0");
+////        data.put("total", "true");
+////        data.put("limit", "30");
+//        data.put("ids", "[528116240]");
 //        data.put("c", "[{id : 528116240}]");
-        data.put("csfn_token", "");
-        data.put("br", "999000");
-        try {
-            System.out.println(getApiResponse("http://music.163.com/weapi/song/enhance/player/url", Connection.Method.POST, data).body());
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-    }
+//        data.put("csfn_token", "");
+////        data.put("br", "999000");
+//        try {
+//            System.out.println(getApiResponse(SONG_URL, Method.POST, data).body());
+//        } catch (Exception e) {
+//            // TODO Auto-generated catch block
+//            e.printStackTrace();
+//        }
+//    }
     
 }
 

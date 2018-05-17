@@ -97,7 +97,7 @@ public class Song extends RecursiveTreeObject<Song> implements Serializable {
             return;
         try {
             Spider.setArtistAndAlbum(this);
-        } catch (ElementNotFoundException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
