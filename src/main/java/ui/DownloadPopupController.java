@@ -48,7 +48,7 @@ public class DownloadPopupController {
     }
 
     private void promptDialog(RunnableEvent task, String tag, String promptMsg) {
-        JFXAlert alert = new JFXAlert((Stage) Center.getRootWindow());
+        JFXAlert<Void> alert = new JFXAlert<>((Stage) Center.getRootWindow());
         alert.initModality(Modality.APPLICATION_MODAL);
         alert.setOverlayClose(false);
 

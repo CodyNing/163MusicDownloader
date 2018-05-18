@@ -38,7 +38,7 @@ public class OptionPopupController implements Initializable {
     private final JFXTextField downloadFolderField = new JFXTextField(Database.database.getSongDir().getAbsolutePath());
     private final DirectoryChooser directoryChooser = new DirectoryChooser();
     private final JFXButton browseButton = new JFXButton("Browse");
-    private JFXAlert setting;
+    private JFXAlert<Void> setting;
     private boolean isInit = false;
 
     @PostConstruct
@@ -66,7 +66,7 @@ public class OptionPopupController implements Initializable {
     @FXML
     public void openSettings() {
         if (!isInit) {
-            setting = new JFXAlert((Stage) Center.getRootWindow());
+            setting = new JFXAlert<>((Stage) Center.getRootWindow());
             setting.setSize(700, 600);
             setting.initModality(Modality.APPLICATION_MODAL);
             setting.setOverlayClose(false);
@@ -92,7 +92,7 @@ public class OptionPopupController implements Initializable {
         setting.show();
     }
 
-    private void saveSetting(JFXAlert setting) {
+    private void saveSetting(JFXAlert<Void> setting) {
         if (!(maxConcurrentField.validate() && waitTimeField.validate() && reconnectTimeField.validate() && downloadFolderField.validate())) {
             return;
         }

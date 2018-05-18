@@ -9,22 +9,16 @@ import org.jsoup.Connection.Method;
 import org.jsoup.Connection.Response;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
-import ui.Center;
-
 import java.io.IOException;
-import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class Spider {
 
@@ -76,28 +70,15 @@ public class Spider {
     }
     
     public static String getDLURLfromHeader(String url, String id) throws IOException {
-        System.out.println(url + " " + id);
-//        String regex = "\\&c=(.*)";
-//        Pattern pattern = Pattern.compile(regex);
-//        Matcher matcher = pattern.matcher(url);
-//        String c = null;
-//        if (matcher.find())
-//            c = matcher.group(1);
-//        else
-//            throw new IOException();
-//        c = URLDecoder.decode(c, "UTF-8");
         Connection.Response
                 response = Jsoup.connect("http:" + url)
                 .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.139 Safari/537.36")
                 .header("X-DevTools-Emulate-Network-Conditions-Client-Id", "50ED8223EED918DD6579B892A1DE1E2A")
                 .method(Connection.Method.GET)
-//                .data("id", id)
-//                .data("c", c)
                 .followRedirects(false)
                 .timeout(10000)
                 .execute();
         String dlurl = response.header("location");
-        System.out.println(dlurl);
         return dlurl;
     }
     
@@ -131,7 +112,7 @@ public class Spider {
 
     public static Set<Song> getSongByPlaylist(String playlistId) throws IOException, ElementNotFoundException {
         Playlist playlist;
-        if ((playlist = Database.getPlaylist(playlistId)) != null)
+        if ((playlist = Database.getPlaylist(playlistId)) != null && playlist.getSongList().size() != 0)
             return playlist.getSongList();
 
         Set<Song> songIDList = new HashSet<>();
@@ -153,7 +134,7 @@ public class Spider {
 
     public static Playlist getPlaylistByID(String playlistId) throws IOException, ElementNotFoundException {
         Playlist playlist;
-        if ((playlist = Database.getPlaylist(playlistId)) != null)
+        if ((playlist = Database.getPlaylist(playlistId)) != null && playlist.getSongList().size() != 0)
             return playlist;
 
         Set<Song> songIDList = new HashSet<>();
@@ -167,7 +148,11 @@ public class Spider {
         JSONArray songlist = json.getJSONObject("result").getJSONArray("tracks");
         for(int i = 0; i < songlist.size(); i++) {
             JSONObject song = songlist.getJSONObject(i);
-            songIDList.add(new Song(song.get("id").toString(), song.getString("name")));
+            JSONObject albumjson = song.getJSONObject("album");
+            JSONObject artistjson = song.getJSONArray("artists").getJSONObject(0);
+            Artist artist = new Artist(artistjson.getString("name"), artistjson.get("id").toString());
+            Album album = new Album(artist, albumjson.getString("name"), albumjson.get("id").toString());
+            songIDList.add(new Song(song.get("id").toString(), song.getString("name"), artist, album));
         }
 
         return new Playlist(playlistId, json.getString("name"), songIDList);
@@ -231,10 +216,11 @@ public class Spider {
             throw new ElementNotFoundException("Unable to get artist, id: " + artistID);
         Set<Album> albumSet = new HashSet<>();
         JSONArray albumjson = json.getJSONArray("hotAlbums");
+        artist = new Artist(json.getJSONObject("artist").getString("name"), artistID);
         for(int i = 0; i < albumjson.size(); i++) {
-            albumSet.add(getAlbumByID(albumjson.getJSONObject(i).get("id").toString()));
+            albumSet.add(new Album(artist, albumjson.getJSONObject(i).getString("name"), albumjson.getJSONObject(i).get("id").toString()));
         }
-        artist = new Artist(json.getJSONObject("artist").getString("name"), artistID, albumSet);
+        artist.getAlbumList().addAll(albumSet);
 
         return artist;
     }
@@ -298,8 +284,8 @@ public class Spider {
         if(albumjson.size() == 0)
             throw new ElementNotFoundException();
         for(int i = 0; i < albumjson.size(); i++) {
-            JSONObject albuminfo = albumjson.getJSONObject(0);
-            JSONObject artistinfo = albuminfo.getJSONObject("artists");
+            JSONObject albuminfo = albumjson.getJSONObject(i);
+            JSONObject artistinfo = albuminfo.getJSONObject("artist");
             Artist artist = new Artist(artistinfo.getString("name"), artistinfo.get("id").toString());
             Album album =  new Album(artist, albuminfo.getString("name"), albuminfo.get("id").toString());
             albumSearchResult.add(album);
@@ -316,7 +302,7 @@ public class Spider {
             throw new ElementNotFoundException();
         for(int i = 0; i < playlistjson.size(); i++) {
             JSONObject playlistinfo = playlistjson.getJSONObject(i);
-            Playlist playlist = new Playlist(playlistinfo.get("id").toString(), playlistinfo.getString("name"));
+            Playlist playlist = new Playlist(playlistinfo.get("id").toString(), playlistinfo.getString("name"), new HashSet<>());
             playlistSearchResult.add(playlist);
         }
         return playlistSearchResult;

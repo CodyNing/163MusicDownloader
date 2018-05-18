@@ -73,7 +73,7 @@
                             </right>
                         </BorderPane>
                         <JFXTreeTableView fx:id="searchView" VBox.vgrow="ALWAYS">
-                            <columns>
+<!--                             <columns>
                                 <JFXTreeTableColumn fx:id="titleColumn" text="Title"
                                                     prefWidth="400"/>
                                 <JFXTreeTableColumn fx:id="artistColumn" text="Artist"
@@ -83,6 +83,7 @@
                                 <JFXTreeTableColumn fx:id="actionColumn" text="Action"
                                                     prefWidth="100"/>
                             </columns>
+-->
                         </JFXTreeTableView>
                     </VBox>
                 </VBox>

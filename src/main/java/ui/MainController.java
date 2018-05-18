@@ -1,8 +1,9 @@
 package ui;
 
 import com.jfoenix.controls.*;
-import entity.Song;
+import entity.*;
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -16,6 +17,8 @@ import util.ThreadUtils;
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.net.URL;
+import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.function.Function;
 
@@ -28,19 +31,7 @@ public class MainController implements Initializable {
     private JFXListView<Downloader.Download> listView;
 
     @FXML
-    private JFXTreeTableView<Song> searchView;
-
-    @FXML
-    private JFXTreeTableColumn<Song, String> titleColumn;
-
-    @FXML
-    private JFXTreeTableColumn<Song, String> artistColumn;
-
-    @FXML
-    private JFXTreeTableColumn<Song, String> albumColumn;
-
-    @FXML
-    private JFXTreeTableColumn<Song, String> actionColumn;
+    private JFXTreeTableView<Entity> searchView;
 
     @FXML
     private JFXProgressBar searchProgress;
@@ -91,12 +82,15 @@ public class MainController implements Initializable {
     private ToggleGroup selectToggle;
     
     private final ToggleGroup searchSwitch = new ToggleGroup();
+    
+    public static MainController main;
 
 
     public MainController() {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Main.fxml"));
         loader.setRoot(this);
         loader.setController(this);
+        main = this;
     }
 
     @PostConstruct
@@ -148,10 +142,10 @@ public class MainController implements Initializable {
     }
 
     private void setUpIdToggle() {
-        setUpRadioButton(new RunnableEvent.PlaylistSearchEvent(), "playlist");
         setUpRadioButton(new RunnableEvent.ArtistSearchEvent(), "artist");
         setUpRadioButton(new RunnableEvent.AlbumSearchEvent(), "album");
         setUpRadioButton(new RunnableEvent.SongSearchEvent(), "song");
+        setUpRadioButton(new RunnableEvent.PlaylistSearchEvent(), "playlist");
         
         selectToggle.selectedToggleProperty().addListener(
                 event -> Center.setUpIdValidationTextField(
@@ -160,10 +154,10 @@ public class MainController implements Initializable {
     }
     
     private void setUpKeywordToggle() {
-//        setUpRadioButton(new RunnableEvent.PlaylistKWSearchEvent(), "playlist");
-//        setUpRadioButton(new RunnableEvent.ArtistKWSearchEvent(), "artist");
-//        setUpRadioButton(new RunnableEvent.AlbumkwSearchEvent(), "album");
+        setUpRadioButton(new RunnableEvent.ArtistKWSearchEvent(), "artist");
+        setUpRadioButton(new RunnableEvent.AlbumKWSearchEvent(), "album");
         setUpRadioButton(new RunnableEvent.SongKWSearchEvent(), "song");
+        setUpRadioButton(new RunnableEvent.PlaylistKWSearchEvent(), "playlist");
 
         selectToggle.selectedToggleProperty().addListener(
                 event -> Center.setUpKeywordTextField(searchTextField));
@@ -192,7 +186,6 @@ public class MainController implements Initializable {
             // Start a new Thread to search in background
             String id = searchTextField.getText();
             searchTextField.clear();
-            Center.printToStatus("Searching in process...");
             RunnableEvent event = ((ToggleData) selectToggle.getSelectedToggle().getUserData()).getEvent();
             ReadIDTask searchTask = new ReadIDTask(id, event);
             searchProgress.visibleProperty().bind(searchTask.runningProperty());
@@ -205,44 +198,55 @@ public class MainController implements Initializable {
         searchView.setShowRoot(false);
         searchView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
-        setupCellValueFactory(titleColumn, Song::titlePropertyProperty);
-        setupCellValueFactory(artistColumn, Song::artistNameProperty);
-        setupCellValueFactory(albumColumn, Song::albumNameProperty);
-        setupCellValueFactory(actionColumn, Song::IDPropertyProperty);
-        actionColumn.setCellFactory(param -> new TreeTableCell<Song, String>() {
-            @Override
-            protected void updateItem(String id, boolean empty) {
-                if (!empty) {
-                    JFXButton button = new JFXButton("Download");
-                    button.setStyle("-fx-text-fill:WHITE;-fx-background-color:#5264AE;-fx-font-size:14px;");
-                    button.setButtonType(JFXButton.ButtonType.RAISED);
-                    button.setOnAction(event -> ThreadUtils.startNormalThread(new ReadIDTask(id, new RunnableEvent.SongDownloadEvent())));
-                    setGraphic(button);
-                    setText("");
-                } else {
-                    setGraphic(null);
-                }
-            }
-        });
+        setupViewColumns(Song.getColumns());
+//        actionColumn.setCellFactory(param -> new TreeTableCell<Song, String>() {
+//            @Override
+//            protected void updateItem(String id, boolean empty) {
+//                if (!empty) {
+//                    JFXButton button = new JFXButton("Download");
+//                    button.setStyle("-fx-text-fill:WHITE;-fx-background-color:#5264AE;-fx-font-size:14px;");
+//                    button.setButtonType(JFXButton.ButtonType.RAISED);
+//                    button.setOnAction(event -> ThreadUtils.startNormalThread(new ReadIDTask(id, new RunnableEvent.SongDownloadEvent())));
+//                    setGraphic(button);
+//                    setText("");
+//                } else {
+//                    setGraphic(null);
+//                }
+//            }
+//        });
 
         searchFilterField.textProperty().addListener((observable, oldValue, newValue) ->
-                searchView.setPredicate(songProp -> {
-                    final Song song = songProp.getValue();
+                searchView.setPredicate(e -> {
+                    final Entity entity = e.getValue();
                     String filter = newValue.toLowerCase();
-                    return song.getTitle().toLowerCase().contains(filter)
-                            || (song.getArtist() != null && song.getArtist().getName().toLowerCase().contains(filter))
-                            || (song.getAlbum() != null && song.getAlbum().getName().toLowerCase().contains(filter));
+                    Map<String, StringProperty> map = entity.getProperties();
+                    for(StringProperty sp : map.values()) {
+                        if(sp.get().toLowerCase().contains(filter))
+                            return true;
+                    }
+                    return false;
                 }));
         selectionLabel.textProperty().bind(Bindings.createStringBinding(
-                () -> searchView.getSelectionModel().getSelectedCells().size() + " song(s) selected",
+                () -> searchView.getSelectionModel().getSelectedCells().size() + " selected",
                 searchView.getSelectionModel().getSelectedItems()));
 
         Center.setSearchView(searchView);
         Center.setSearchListLabel(searchListLabel);
     }
+    
+    public void setupViewColumns(List<String> properties) {
+        searchView.getColumns().clear();
+        double width = Main.WIDTH / properties.size();
+        properties.forEach(s->{
+                JFXTreeTableColumn<Entity, String> column = new JFXTreeTableColumn<>(s);
+                column.setPrefWidth(width);
+                setupCellValueFactory(column, (Entity e)->e.getProperties().get(s));
+                searchView.getColumns().add(column);
+            });
+    }
 
-    private <T> void setupCellValueFactory(JFXTreeTableColumn<Song, T> column, Function<Song, ObservableValue<T>> mapper) {
-        column.setCellValueFactory((TreeTableColumn.CellDataFeatures<Song, T> param) -> {
+    private <T> void setupCellValueFactory(JFXTreeTableColumn<Entity, T> column, Function<Entity, ObservableValue<T>> mapper) {
+        column.setCellValueFactory((TreeTableColumn.CellDataFeatures<Entity, T> param) -> {
             if (column.validateValue(param)) {
                 return mapper.apply(param.getValue().getValue());
             } else {
@@ -255,15 +259,23 @@ public class MainController implements Initializable {
     public void downloadAll() {
         if (searchView.getRoot() == null)
             return;
-        for (TreeItem<Song> songTreeItem : searchView.getRoot().getChildren()) {
-            songTreeItem.getValue().download();
+        for (TreeItem<Entity> songTreeItem : searchView.getRoot().getChildren()) {
+            try {
+                ((Song)songTreeItem.getValue()).download();
+            } catch (Exception e) {
+                Center.printToStatus("What are you doing idiot?????");
+            }
         }
     }
 
     @FXML
     public void downloadSelected() {
-        for (TreeTablePosition<Song, ?> cell : searchView.getSelectionModel().getSelectedCells()) {
-            cell.getTreeItem().getValue().download();
+        for (TreeTablePosition<Entity, ?> cell : searchView.getSelectionModel().getSelectedCells()) {
+            try {
+                ((Song)cell.getTreeItem().getValue()).download();
+            } catch (Exception e) {
+                Center.printToStatus("What are you doing idiot?????");
+            }
         }
     }
 

@@ -5,12 +5,15 @@ import util.Database;
 import util.Downloader;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
-import com.jfoenix.controls.datamodels.treetable.RecursiveTreeObject;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 
-public class Album extends RecursiveTreeObject<Album> implements Serializable {
+public class Album extends Entity implements Serializable {
 
     private static final long serialVersionUID = 503L;
 
@@ -18,7 +21,14 @@ public class Album extends RecursiveTreeObject<Album> implements Serializable {
     private final String name;
     private final String id;
     private final Set<Song> songList;
+    private static List<String> columns = new ArrayList<>();
 
+    static{
+        columns.add("Album Name");
+        columns.add("Album Artist");
+        columns.add("Album ID");
+    }
+    
     public Album(Artist artist, String name, String id) {
         this(artist, name, id, new HashSet<>());
     }
@@ -28,9 +38,19 @@ public class Album extends RecursiveTreeObject<Album> implements Serializable {
         this.name = name;
         this.id = id;
         this.songList = songList;
+        setProperty();
 
         artist.addAlbum(this);
         Database.addAlbum(this);
+    }
+
+    @Override
+    public void setProperty() {
+        properties.put("Album Name", new SimpleStringProperty(name));
+        properties.put("Album ID", new SimpleStringProperty(id));
+        StringProperty artistName = properties.get("artist");
+        if (artistName == null && artist != null)
+            properties.put("Album Artist", new SimpleStringProperty(artist.getName()));
     }
 
     public void addSong(Song song) {
@@ -56,6 +76,14 @@ public class Album extends RecursiveTreeObject<Album> implements Serializable {
     
     public Set<Song> getSongList() {
         return songList;
+    }
+    
+    public static List<String> getColumns() {
+        return columns;
+    }
+
+    public static void setColumns(List<String> columns) {
+        Album.columns = columns;
     }
 
     @Override
