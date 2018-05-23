@@ -108,7 +108,10 @@ public class Downloader {
         id3v2Tag.setTitle(song.getTitleProperty());
         id3v2Tag.setAlbum(song.getAlbum().getName());
         id3v2Tag.setTrack(song.getTrackNo());
-        String newFileName = Database.database.getSongDir() + "\\" + id3v2Tag.getArtist() + " - " + id3v2Tag.getTitle() + ".mp3";
+        File newPath = new File(Database.database.getSongDir() + "/" + id3v2Tag.getArtist() + "/" + id3v2Tag.getAlbum());
+        if(!newPath.exists())
+            newPath.mkdirs();
+        String newFileName = newPath + "\\" + id3v2Tag.getArtist() + " - " + id3v2Tag.getTitle() + ".mp3";
         mp3file.save(newFileName);
         fp.delete();
         Center.printToStatus(id3v2Tag.getArtist() + " - " + id3v2Tag.getTitle() + " download Complete");

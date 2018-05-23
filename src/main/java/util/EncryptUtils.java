@@ -44,7 +44,7 @@ public class EncryptUtils {
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
             cipher.init(Cipher.ENCRYPT_MODE, skeySpec, iv);
 
-            byte[] encrypted = cipher.doFinal(text.getBytes());
+            byte[] encrypted = cipher.doFinal(text.getBytes("UTF-8"));
 
             return new BASE64Encoder().encode(encrypted);
         } catch (Exception e) {

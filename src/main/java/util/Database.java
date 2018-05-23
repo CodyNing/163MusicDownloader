@@ -22,7 +22,7 @@ public class Database implements Serializable {
     private final Map<String, Album> albumMap = new HashMap<>();
     private final Map<String, Playlist> playlistMap = new HashMap<>();
 
-    private File SONG_DIR = new File("songs/");
+    private static File SONG_DIR = new File("songs/");
 
     private int maxConcurrentDownload = 5;
     private int failConnectionWaitTime = 15;
